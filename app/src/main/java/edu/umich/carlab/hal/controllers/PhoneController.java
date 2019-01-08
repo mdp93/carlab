@@ -16,7 +16,7 @@ import android.util.Log;
 import com.google.android.gms.location.*;
 import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.sources.sensors.PhoneSensors;
+import edu.umich.carlab.sensors.PhoneSensors;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

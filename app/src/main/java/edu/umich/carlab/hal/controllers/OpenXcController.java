@@ -11,7 +11,7 @@ import com.openxc.VehicleManager;
 import com.openxc.measurements.Measurement;
 import com.openxc.measurements.UnrecognizedMeasurementTypeException;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.sources.sensors.OpenXcSensors;
+import edu.umich.carlab.sensors.OpenXcSensors;
 
 import java.util.concurrent.Callable;
 

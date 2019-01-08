@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 import java.util.concurrent.Callable;
 
-import static edu.umich.carlab.sources.sensors.WebSensors.WINDSPEED;
+import static edu.umich.carlab.sensors.WebSensors.WINDSPEED;
 
 /**
  * Uses HTTP Handler to make a request and process output.

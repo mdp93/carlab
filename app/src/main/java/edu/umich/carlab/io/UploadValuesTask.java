@@ -14,11 +14,11 @@ import java.net.URL;
  */
 
 public class UploadValuesTask extends AsyncTask {
+    final String TAG = "UploadFile";
     File uploadFile;
     int experimentId;
-    final String TAG = "UploadFile";
 
-    public UploadValuesTask (File uploadFile, int experimentId) {
+    public UploadValuesTask(File uploadFile, int experimentId) {
         // Send to server
         // We will send this to our server
         // Maybe we will multiplex there but for now just send to our server

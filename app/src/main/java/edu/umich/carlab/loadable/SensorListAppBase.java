@@ -1,4 +1,4 @@
-package edu.umich.carlab.apps;
+package edu.umich.carlab.loadable;
 
 import android.app.Activity;
 import android.content.Context;
@@ -29,6 +29,7 @@ public class SensorListAppBase extends App {
     TableLayout dataTable;
     Map<String, TextView> tableRows;
 
+
     public SensorListAppBase(CLDataProvider cl, Context context) {
         super(cl, context);
     }
@@ -44,12 +45,8 @@ public class SensorListAppBase extends App {
             TextView sensorTV = new TextView(context);
             TextView valueTV = new TextView(context);
 
-//            Typeface face = Typeface.createFromAsset(context.getAssets(), "font/quicksand_font.ttf");
             deviceTV.setTextSize(10);
-//            deviceTV.setTypeface(face);
             sensorTV.setTextSize(10);
-//            sensorTV.setTypeface(face);
-//            valueTV.setTypeface(face);
             valueTV.setTextSize(10);
 
             int TABLE_ROW_MARGIN = 7;
@@ -72,6 +69,7 @@ public class SensorListAppBase extends App {
         }
     }
 
+    @Override
     public void newData(DataMarshal.DataObject dataObject) {
         if (!initialized) return;
         if (dataObject.dataType != DataMarshal.MessageType.DATA)
@@ -101,6 +99,7 @@ public class SensorListAppBase extends App {
         return view;
     }
 
+    @Override
     public void destroyVisualization() {
         tableRows.clear();
         dataTable.removeAllViews();

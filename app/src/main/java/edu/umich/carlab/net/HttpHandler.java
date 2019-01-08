@@ -10,10 +10,10 @@ import java.net.URL;
 
 /**
  * Simple class which runs an HTTP request to download new data.
- *
+ * <p>
  * This runs it on the same thread so it is the responsibility of the calling class to run this
  * in a separate thread.
- *
+ * <p>
  * http://www.androidhive.info/2012/01/android-json-parsing-tutorial/
  * This is useful for the Androi
  * Created by Ravi Tamada on 01/09/16.

@@ -14,28 +14,19 @@ import static edu.umich.carlab.Constants.CARLAB_NOTIFICATION_ID;
 
 /**
  * Notification helper functions.
- *
+ * <p>
  * This contains an ENUM for the most common notifications. No one has to call the full on flexible
  * notification. function.
  */
 
 
 public class NotificationsHelper {
-    public enum Notifications {
-        DISCOVERY,
-        DISCOVERY_ERROR,
-        COLLECTING_DATA,
-        STARTING,
-        UPLOADING,
-        STOPPING,
-        DISCOVERY_FAIL
-    };
-
-    static NotificationChannel channel;
-
     public static NotificationManager notificationManager = null;
 
-    private static Notification makeNotification (Context cl, Notifications notificationState) {
+    ;
+    static NotificationChannel channel;
+
+    private static Notification makeNotification(Context cl, Notifications notificationState) {
         String title, text;
         int icon;
         boolean ongoing = true, notify = false, vibrate = false;
@@ -82,27 +73,21 @@ public class NotificationsHelper {
         return makeNotification(cl, title, text, icon, ongoing, notify, vibrate);
     }
 
-
-
-
     public static void setNotification(Context context, Notifications notificationState) {
         Notification notification = makeNotification(context, notificationState);
         notificationManager.notify(CARLAB_NOTIFICATION_ID, notification);
     }
-
 
     public static void setNotificationForeground(Service cl, Notifications notificationState) {
         Notification notification = makeNotification(cl, notificationState);
         cl.startForeground(CARLAB_NOTIFICATION_ID, notification);
     }
 
-
-
     private static Notification makeNotification(Context ctx, String contentTitle, String contentText, int icon, boolean ongoing, boolean notify, boolean vibrate) {
         if (notificationManager == null)
             notificationManager =
                     (NotificationManager)
-                        ctx.getSystemService(NOTIFICATION_SERVICE);
+                            ctx.getSystemService(NOTIFICATION_SERVICE);
 
 
         if (channel == null && Build.VERSION.SDK_INT >= 26) {
@@ -127,12 +112,11 @@ public class NotificationsHelper {
         }
 
 
-
         final NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(ctx)
-                    .setContentTitle(contentTitle)
-                    .setContentText(contentText)
-                    .setSmallIcon(icon);
+                        .setContentTitle(contentTitle)
+                        .setContentText(contentText)
+                        .setSmallIcon(icon);
 
         Class<?> mainActivityClass = Utilities.getMainActivity(ctx);
         if (mainActivityClass != null) {
@@ -155,8 +139,18 @@ public class NotificationsHelper {
         return notificationBuilder.build();
     }
 
-
-    private static void cancelNotification () {
+    private static void cancelNotification() {
         notificationManager.cancel(CARLAB_NOTIFICATION_ID);
+    }
+
+
+    public enum Notifications {
+        DISCOVERY,
+        DISCOVERY_ERROR,
+        COLLECTING_DATA,
+        STARTING,
+        UPLOADING,
+        STOPPING,
+        DISCOVERY_FAIL
     }
 }

@@ -12,8 +12,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import edu.umich.carlab.Constants;
-import edu.umich.carlab.trips.TripLog;
-import edu.umich.carlab.trips.TripRecord;
 import edu.umich.carlab.utils.Utilities;
 import org.json.JSONObject;
 
@@ -21,7 +19,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.util.List;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 

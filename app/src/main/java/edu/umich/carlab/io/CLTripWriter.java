@@ -20,10 +20,10 @@ import java.util.zip.GZIPOutputStream;
  */
 
 public class CLTripWriter {
+    private final String TAG = "TripWriter";
     private Context context;
     private TripRecord tripRecord;
     private String filename;
-    private final String TAG = "TripWriter";
     private File saveFile;
     private BufferedWriter buf;
     private Date startTime;
@@ -33,35 +33,7 @@ public class CLTripWriter {
     private Set<String> sensorsSaved;
 
 
-
-
-    public static File GetTripsDir(Context context) {
-        File tracesDir = context.getExternalFilesDir("traces");
-        tracesDir.mkdirs();
-        return tracesDir;
-    }
-
-    public static File GetSurveyDir(Context context) {
-        File surveyDir = context.getExternalFilesDir("survey");
-        surveyDir.mkdirs();
-        return surveyDir;
-    }
-
-
-
-    public static File GetAudioDir(Context context) {
-        File audioDst = context.getExternalFilesDir("audio");
-        audioDst.mkdirs();
-        return audioDst;
-    }
-
-    public static File GetAppsDir(Context context) {
-        File appsDst = context.getFilesDir();
-        appsDst.mkdirs();
-        return appsDst;
-    }
-
-    public CLTripWriter (Context context, TripRecord tripRecord) {
+    public CLTripWriter(Context context, TripRecord tripRecord) {
         this.context = context;
         this.tripRecord = tripRecord;
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US);
@@ -81,6 +53,30 @@ public class CLTripWriter {
         }
     }
 
+    public static File GetTripsDir(Context context) {
+        File tracesDir = context.getExternalFilesDir("traces");
+        tracesDir.mkdirs();
+        return tracesDir;
+    }
+
+    public static File GetSurveyDir(Context context) {
+        File surveyDir = context.getExternalFilesDir("survey");
+        surveyDir.mkdirs();
+        return surveyDir;
+    }
+
+    public static File GetAudioDir(Context context) {
+        File audioDst = context.getExternalFilesDir("audio");
+        audioDst.mkdirs();
+        return audioDst;
+    }
+
+    public static File GetAppsDir(Context context) {
+        File appsDst = context.getFilesDir();
+        appsDst.mkdirs();
+        return appsDst;
+    }
+
     public void startNewTrip() {
         try {
             startTime = Calendar.getInstance().getTime();
@@ -96,7 +92,6 @@ public class CLTripWriter {
 
 
     /**
-     *
      * @param dataObject
      */
     public synchronized void addNewData(String appClassName, DataMarshal.DataObject dataObject) {
@@ -110,7 +105,7 @@ public class CLTripWriter {
             for (DataMarshal.DataObject dObject : splitObjects) {
                 String line = dObject.toJson();
 
-                if (line!= null) {
+                if (line != null) {
                     try {
                         buf.write(line, 0, line.length());
                         buf.newLine();
@@ -122,7 +117,7 @@ public class CLTripWriter {
         } else {
             String line = dataObject.toJson();
 
-            if (line!= null) {
+            if (line != null) {
                 try {
                     buf.write(line, 0, line.length());
                     buf.newLine();
@@ -132,7 +127,6 @@ public class CLTripWriter {
             }
         }
     }
-
 
 
     public String stopTrip() {
@@ -161,8 +155,6 @@ public class CLTripWriter {
 
         return filename;
     }
-
-
 
 
 }

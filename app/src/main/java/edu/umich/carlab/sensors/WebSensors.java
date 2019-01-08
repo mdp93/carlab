@@ -1,4 +1,4 @@
-package edu.umich.carlab.sources.sensors;
+package edu.umich.carlab.sensors;
 
 /**
  * Created by arunganesan on 3/15/18.

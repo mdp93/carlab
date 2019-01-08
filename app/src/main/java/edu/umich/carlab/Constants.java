@@ -52,6 +52,7 @@ public class Constants {
     public static final int sleepCheckPeriod = 5*1000; //5*1000;
 
     public static final String Static_Apps = "static apps";
+    public static final String Middlewares = "middlewares";
 
     public static final String Trip_Id_Offset = "trip id offset";
 

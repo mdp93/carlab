@@ -1,4 +1,4 @@
-package edu.umich.carlab.config;
+package edu.umich.carlab.hal.controllers;
 
 
 import com.github.pires.obd.commands.ObdCommand;

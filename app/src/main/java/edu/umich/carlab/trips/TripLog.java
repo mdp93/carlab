@@ -103,9 +103,9 @@ public class TripLog {
             }
 
             db.insertOrThrow(
-                RECORDS_TABLE,
-                null,
-                getContentValues(record)
+                    RECORDS_TABLE,
+                    null,
+                    getContentValues(record)
             );
 
             return record;
@@ -204,7 +204,6 @@ public class TripLog {
     public List<TripRecord> readUnfilledSurveys() {
         return filterRowsBy(RECORD_SURVEY_RESPONSE + " IS NULL");
     }
-
 
 
     /**

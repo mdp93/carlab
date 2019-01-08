@@ -1,4 +1,4 @@
-package edu.umich.carlab.sources.sensors;
+package edu.umich.carlab.sensors;
 
 import android.hardware.Sensor;
 import edu.umich.carlab.DataMarshal;
@@ -47,11 +47,10 @@ public class PhoneSensors {
     public final static String GPS_SPEED = "gps_speed";
 
 
-
-
     /**
      * Convenience function which says if the sensor is a broadcast-type sensor
      * If it is, then we can register a broadcast receiver and call {@link #sensorNameToType(String)}
+     *
      * @param name
      * @return
      */
@@ -60,29 +59,34 @@ public class PhoneSensors {
     }
 
 
-
-
     /**
      * Split the sensor names
+     *
      * @param aggregateSensor
      * @return
      */
     public static String[] splitSensorNames(String aggregateSensor) {
-        switch(aggregateSensor) {
-            case ACCEL: return new String [] { ACCEL_X, ACCEL_Y, ACCEL_Z };
-            case GYRO: return new String [] { GYRO_X, GYRO_Y, GYRO_Z };
-            case MAGNET: return new String [] { MAGNET_X, MAGNET_Y, MAGNET_Z };
-            case GRAVITY: return new String [] { GRAVITY_X, GRAVITY_Y, GRAVITY_Z };
-            case ORIENT: return new String [] { ORIENT_AZIMUTH, ORIENT_PITCH, ORIENT_ROLL };
-            case GPS: return new String [] { GPS_LATITUDE, GPS_LONGITUDE, GPS_SPEED };
+        switch (aggregateSensor) {
+            case ACCEL:
+                return new String[]{ACCEL_X, ACCEL_Y, ACCEL_Z};
+            case GYRO:
+                return new String[]{GYRO_X, GYRO_Y, GYRO_Z};
+            case MAGNET:
+                return new String[]{MAGNET_X, MAGNET_Y, MAGNET_Z};
+            case GRAVITY:
+                return new String[]{GRAVITY_X, GRAVITY_Y, GRAVITY_Z};
+            case ORIENT:
+                return new String[]{ORIENT_AZIMUTH, ORIENT_PITCH, ORIENT_ROLL};
+            case GPS:
+                return new String[]{GPS_LATITUDE, GPS_LONGITUDE, GPS_SPEED};
         }
 
-        return new String[] { aggregateSensor };
+        return new String[]{aggregateSensor};
     }
 
 
     public static String sensorToAggregate(String sensor) {
-        switch(sensor) {
+        switch (sensor) {
             case ACCEL_X:
             case ACCEL_Y:
             case ACCEL_Z:
@@ -113,7 +117,7 @@ public class PhoneSensors {
     }
 
     public static String[] listAllSensors() {
-        return new String[] {
+        return new String[]{
                 ACCEL,
                 GYRO,
                 MAGNET,
@@ -136,6 +140,7 @@ public class PhoneSensors {
 
     /**
      * This function splits an grouped together sensor source to it's complementary parts
+     *
      * @param dataObject
      * @return
      */
@@ -145,12 +150,12 @@ public class PhoneSensors {
         if (!device.equals(DEVICE)) return splitMap;
 
         String sensor = dataObject.sensor;
-        Float [] values;
+        Float[] values;
 
         // This happens for status messages
         // We still want to split and broadcast, though
         if (dataObject.value.length == 1) {
-            values = new Float[] {
+            values = new Float[]{
                     dataObject.value[0],
                     dataObject.value[0],
                     dataObject.value[0]
@@ -204,11 +209,16 @@ public class PhoneSensors {
      */
     public static int sensorNameToType(String name) {
         switch (name) {
-            case ACCEL: return Sensor.TYPE_ACCELEROMETER;
-            case GYRO: return Sensor.TYPE_GYROSCOPE;
-            case MAGNET: return Sensor.TYPE_MAGNETIC_FIELD;
-            case GRAVITY: return Sensor.TYPE_GRAVITY;
-            case ORIENT: return Sensor.TYPE_ORIENTATION;
+            case ACCEL:
+                return Sensor.TYPE_ACCELEROMETER;
+            case GYRO:
+                return Sensor.TYPE_GYROSCOPE;
+            case MAGNET:
+                return Sensor.TYPE_MAGNETIC_FIELD;
+            case GRAVITY:
+                return Sensor.TYPE_GRAVITY;
+            case ORIENT:
+                return Sensor.TYPE_ORIENTATION;
         }
         return -999;
     }
@@ -220,16 +230,22 @@ public class PhoneSensors {
      * data, then PhoneController calls this function to get the list of sensors that
      * accelerometer data maps to. Then it can decide whether it should broadcast all of them
      * or just part of them.
+     *
      * @param type
      * @return
      */
     public static String typeToSensorName(int type) {
         switch (type) {
-            case Sensor.TYPE_ACCELEROMETER: return ACCEL;
-            case Sensor.TYPE_GYROSCOPE: return GYRO;
-            case Sensor.TYPE_MAGNETIC_FIELD: return MAGNET;
-            case Sensor.TYPE_GRAVITY: return GRAVITY;
-            case Sensor.TYPE_ORIENTATION: return ORIENT;
+            case Sensor.TYPE_ACCELEROMETER:
+                return ACCEL;
+            case Sensor.TYPE_GYROSCOPE:
+                return GYRO;
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                return MAGNET;
+            case Sensor.TYPE_GRAVITY:
+                return GRAVITY;
+            case Sensor.TYPE_ORIENTATION:
+                return ORIENT;
         }
 
         return null;
@@ -238,12 +254,12 @@ public class PhoneSensors {
 
     // This mapping is from: https://developer.android.com/reference/android/hardware/SensorEvent.html#values
     // https://developer.android.com/guide/topics/sensors/sensors_position.html
-    private static float getSensorFromValues(float [] sensorValues, String sensorName) {
+    private static float getSensorFromValues(float[] sensorValues, String sensorName) {
         if (sensorName.equals(ACCEL_X)
-            || sensorName.equals(GYRO_X)
-            || sensorName.equals(MAGNET_X)
-            || sensorName.equals(GRAVITY_X)
-            || sensorName.equals(ORIENT_AZIMUTH)) {
+                || sensorName.equals(GYRO_X)
+                || sensorName.equals(MAGNET_X)
+                || sensorName.equals(GRAVITY_X)
+                || sensorName.equals(ORIENT_AZIMUTH)) {
             return sensorValues[0];
         }
 

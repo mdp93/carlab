@@ -1,4 +1,4 @@
-package edu.umich.carlab.sources.sensors;
+package edu.umich.carlab.sensors;
 
 
 import com.github.pires.obd.commands.ObdCommand;
@@ -25,7 +25,7 @@ public class ObdSensors {
     final static String TAG = "ObdSensor";
 
     public static String[] listAllSensors() {
-        return new String[] {
+        return new String[]{
                 ENGINE_LOAD,
                 ENGINE_RPM,
                 RUNTIME,
@@ -52,30 +52,36 @@ public class ObdSensors {
 
     public static ObdCommand nameToCommand(String sensor) {
         switch (sensor) {
-            case ENGINE_RPM: return new RPMCommand();
-            case RUNTIME: return new RuntimeCommand();
-            case THROTTLE: return new ThrottlePositionCommand();
-            case SPEED: return new SpeedCommand();
-            case FUEL_LEVEL: return new FuelLevelCommand();
-            case DISTANCE_SINCE_CLEARED: return new DistanceSinceCCCommand();
-            case DISTANCE_WITH_MIL: return new DistanceMILOnCommand();
+            case ENGINE_RPM:
+                return new RPMCommand();
+            case RUNTIME:
+                return new RuntimeCommand();
+            case THROTTLE:
+                return new ThrottlePositionCommand();
+            case SPEED:
+                return new SpeedCommand();
+            case FUEL_LEVEL:
+                return new FuelLevelCommand();
+            case DISTANCE_SINCE_CLEARED:
+                return new DistanceSinceCCCommand();
+            case DISTANCE_WITH_MIL:
+                return new DistanceMILOnCommand();
         }
         return null;
     }
 
 
-
     public static float responseToFloat(ObdCommand command) {
         if (command.getName().equals(new RPMCommand().getName())) {
-            return ((RPMCommand)command).getRPM();
+            return ((RPMCommand) command).getRPM();
         } else if (command.getName().equals(new SpeedCommand().getName())) {
-            return ((SpeedCommand)command).getImperialSpeed();
+            return ((SpeedCommand) command).getImperialSpeed();
         } else if (command.getName().equals(new FuelLevelCommand().getName())) {
-            return ((FuelLevelCommand)command).getFuelLevel();
+            return ((FuelLevelCommand) command).getFuelLevel();
         } else if (command.getName().equals(new DistanceMILOnCommand().getName())) {
-            return ((DistanceMILOnCommand)command).getImperialUnit();
+            return ((DistanceMILOnCommand) command).getImperialUnit();
         } else if (command.getName().equals(new DistanceSinceCCCommand().getName())) {
-            return ((DistanceSinceCCCommand)command).getImperialUnit();
+            return ((DistanceSinceCCCommand) command).getImperialUnit();
         }
         return 0;
     }

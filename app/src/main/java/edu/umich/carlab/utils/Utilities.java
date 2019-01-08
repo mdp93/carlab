@@ -43,7 +43,7 @@ public class Utilities {
     }
 
     public static void schedule(Context context, Class<?> cls, long interval) {
-        AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, new Intent(context, cls), 0);
         alarmManager.cancel(alarmIntent);
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
@@ -83,7 +83,7 @@ public class Utilities {
     }
 
     public static void scheduleOnce(Context context, Class<?> cls, long inMillis) {
-        AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, new Intent(context, cls), 0);
         alarmManager.cancel(alarmIntent);
         alarmManager.set(AlarmManager.RTC_WAKEUP,
@@ -91,12 +91,12 @@ public class Utilities {
                 alarmIntent);
     }
 
-    public static void keepTryingInit (Context context) {
+    public static void keepTryingInit(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs.getInt(Constants.Trip_Id_Offset, -1) != -1)
             return;
 
-        AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(
                 context,
                 0,
@@ -110,12 +110,12 @@ public class Utilities {
     }
 
 
-    public static void cancelInit (Context context) {
+    public static void cancelInit(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs.getInt(Constants.Trip_Id_Offset, -1) == -1)
             return;
 
-        AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(
                 context,
                 0,
@@ -126,12 +126,13 @@ public class Utilities {
 
     /**
      * Helper function which checks if we're connected and have WiFi connectivity
+     *
      * @param context
      * @return
      */
-    public static boolean isConnectedAndWifi (Context context) {
+    public static boolean isConnectedAndWifi(Context context) {
         ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
@@ -151,7 +152,7 @@ public class Utilities {
      * @param context
      * @return
      */
-    public static File[] listAllTripsInOrder (Context context) {
+    public static File[] listAllTripsInOrder(Context context) {
         File homedir = CLTripWriter.GetTripsDir(context);
         File[] files = homedir.listFiles(new FilenameFilter() {
             @Override
@@ -172,10 +173,11 @@ public class Utilities {
 
     /**
      * Return the trip ID from file name
+     *
      * @param file
      * @return
      */
-    public static int filenameToTripId (File file, Context context) {
+    public static int filenameToTripId(File file, Context context) {
         String filename = file.getName();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String tripKey = filename + ":trip";
@@ -186,6 +188,7 @@ public class Utilities {
 
     /**
      * Upload the trip file and any corresponding media and survey responses.
+     *
      * @param file
      */
     public static void uploadFile(File file, Context context) {

@@ -27,7 +27,29 @@ public class CheckUpdate extends BroadcastReceiver {
     Context context;
     SharedPreferences prefs;
     int version;
-
+    Response.Listener<String> gotVersionNum = new Response.Listener<String>() {
+        @Override
+        public void onResponse(String responseTripNum) {
+            try {
+                int latestVersionNumber = Integer.parseInt(responseTripNum);
+                if (latestVersionNumber != version) {
+                    prefs
+                            .edit()
+                            .putBoolean(Experiment_New_Version_Detected, true)
+                            .putLong(Experiment_New_Version_Last_Checked, System.currentTimeMillis())
+                            .apply();
+                }
+            } catch (Exception e) {
+                CLog.e(TAG, "Error parsing JSON of list of uploaded receipts");
+            }
+        }
+    };
+    Response.ErrorListener gotVersionError = new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            CLog.e(TAG, "Error: " + error.getLocalizedMessage());
+        }
+    };
 
     /**
      * Make a volley request and get the latest.
@@ -52,38 +74,11 @@ public class CheckUpdate extends BroadcastReceiver {
         // Get the list of currently uploaded receipts. Only upload ones that weren't successfully
         // uploaded and processed
         StringRequest myReq = new StringRequest(Request.Method.GET,
-                Constants.VERSION_URL+ "?shortname=" + shortname,
+                Constants.VERSION_URL + "?shortname=" + shortname,
                 gotVersionNum,
                 gotVersionError) {
         };
 
         queue.add(myReq);
     }
-    
-    Response.Listener<String> gotVersionNum = new Response.Listener<String>() {
-        @Override
-        public void onResponse(String responseTripNum) {
-            try {
-                int latestVersionNumber = Integer.parseInt(responseTripNum);
-                if (latestVersionNumber != version) {
-                    prefs
-                            .edit()
-                            .putBoolean(Experiment_New_Version_Detected, true)
-                            .putLong(Experiment_New_Version_Last_Checked, System.currentTimeMillis())
-                            .apply();
-
-//                    Utilities.wakeUpMainActivity(context);
-                }
-            } catch (Exception e) {
-                CLog.e(TAG, "Error parsing JSON of list of uploaded receipts");
-            }
-        }
-    };
-
-    Response.ErrorListener gotVersionError = new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-            CLog.e(TAG, "Error: " + error.getLocalizedMessage());
-        }
-    };
 }

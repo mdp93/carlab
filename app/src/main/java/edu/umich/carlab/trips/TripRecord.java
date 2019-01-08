@@ -27,7 +27,6 @@ public class TripRecord {
     }
 
 
-
     public Integer getSpeedMax() {
         return speed;
     }
@@ -118,7 +117,6 @@ public class TripRecord {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
         return sdf.format(this.endDate);
     }
-
 
 
     public String getSurveyResponse() {

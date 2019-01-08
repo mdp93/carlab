@@ -1,4 +1,4 @@
-package edu.umich.carlab.apps;
+package edu.umich.carlab.loadable;
 
 import android.app.Activity;
 import android.content.Context;
@@ -13,75 +13,69 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class App implements IApp {
-    CLDataProvider cl;
-    protected Context context;
-    public Activity parentActivity;
-    boolean uploadData = true;
-    String URL = Constants.DEFAULT_UPLOAD_URL;
     final static String TAG = "App base";
-
+    public Activity parentActivity;
     public String name = null;
-    public Type type = null;
     public List<Pair<String, String>> sensors = new ArrayList<>();
     public List<String> dependencies = new ArrayList<>();
     public String description = "";
+    protected Context context;
+    CLDataProvider cl;
+    boolean uploadData = true;
+    String URL = Constants.DEFAULT_UPLOAD_URL;
 
-    private App() {};
+    private App() {
+    }
+
+    ;
 
     public App(CLDataProvider cl, Context context) {
         this.cl = cl;
         this.context = context;
     }
 
-    public void newData(DataMarshal.DataObject dObject) {}
+    @Override
+    public void newData(DataMarshal.DataObject dObject) {
+    }
 
 
+    @Override
     public String getName() {
         if (name == null)
             throw new RuntimeException("The app must specify a name.");
         return name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public List<String> getDependencies() { return dependencies; }
-
+    @Override
     public List<Pair<String, String>> getSensors() {
         return sensors;
     }
 
-    public Type getType() {
-        if (type == null)
-            throw new RuntimeException("The app must specify a type.");
-        return type;
-    }
 
-
-    public String getURL() {
-        return URL;
-    }
-
-    public boolean getUploadDataCheck() {
-        return uploadData;
-    }
-
-
+    @Override
     public View initializeVisualization(Activity parentActivity) {
         this.parentActivity = parentActivity;
         return null;
     }
 
-    public void destroyVisualization() {}
+    @Override
+    public void destroyVisualization() {
+    }
 
-    public void shutdown() {}
+    @Override
+    public void shutdown() {
+    }
 
     /********************************
      * Activity callbacks that the MapView needs.
      * We mights'well make it part of the App standard so other's can benefit from it too
      *******************************/
-    public void onCreate(Bundle bundle) {}
-    public void onResume() {}
-    public void onPause() {}
+    public void onCreate(Bundle bundle) {
+    }
+
+    public void onResume() {
+    }
+
+    public void onPause() {
+    }
 }

@@ -12,7 +12,7 @@ import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.hal.JobMaker;
 import edu.umich.carlab.io.ObdCommandJob;
 import edu.umich.carlab.net.BluetoothConnService;
-import edu.umich.carlab.sources.sensors.ObdSensors;
+import edu.umich.carlab.sensors.ObdSensors;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;

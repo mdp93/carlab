@@ -10,11 +10,12 @@ import java.net.URL;
  * https://stackoverflow.com/questions/11766878/sending-files-using-post-with-httpurlconnection
  */
 public class MultipartUtility {
-    private HttpURLConnection httpConn;
-    private DataOutputStream request;
-    private final String boundary =  "*****";
+    private final String boundary = "*****";
     private final String crlf = "\r\n";
     private final String twoHyphens = "--";
+    private HttpURLConnection httpConn;
+    private DataOutputStream request;
+
     /**
      * This constructor initializes a new HTTP POST request with content type
      * is set to multipart/form-data
@@ -34,22 +35,24 @@ public class MultipartUtility {
         httpConn.setRequestProperty("Cache-Control", "no-cache");
         httpConn.setRequestProperty(
                 "Content-Type", "multipart/form-data;boundary=" + this.boundary);
-        request =  new DataOutputStream(httpConn.getOutputStream());
+        request = new DataOutputStream(httpConn.getOutputStream());
     }
+
     /**
      * Adds a form field to the request
      *
      * @param name  field name
      * @param value field value
      */
-    public void addFormField(String name, String value)throws IOException  {
+    public void addFormField(String name, String value) throws IOException {
         request.writeBytes(this.twoHyphens + this.boundary + this.crlf);
-        request.writeBytes("Content-Disposition: form-data; name=\"" + name + "\""+ this.crlf);
+        request.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"" + this.crlf);
         request.writeBytes("Content-Type: text/plain; charset=UTF-8" + this.crlf);
         request.writeBytes(this.crlf);
-        request.writeBytes(value+ this.crlf);
+        request.writeBytes(value + this.crlf);
         request.flush();
     }
+
     /**
      * Adds a upload file section to the request
      *
@@ -68,6 +71,7 @@ public class MultipartUtility {
         byte[] bytes = FileUtils.readFileToByteArray(uploadFile);
         request.write(bytes);
     }
+
     /**
      * Completes the request and receives response from the server.
      *
@@ -76,7 +80,7 @@ public class MultipartUtility {
      * @throws IOException
      */
     public String finish() throws IOException {
-        String response ="";
+        String response = "";
         request.writeBytes(this.crlf);
         request.writeBytes(this.twoHyphens + this.boundary +
                 this.twoHyphens + this.crlf);

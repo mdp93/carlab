@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 public class BluetoothManager {
-	
+
     private static final String TAG = BluetoothManager.class.getName();
     /*
      * http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html
@@ -32,14 +32,13 @@ public class BluetoothManager {
      * @throws IOException
      */
     public static BluetoothSocket connect(BluetoothDevice dev) throws IOException {
-    	BluetoothSocket sock = null;
+        BluetoothSocket sock = null;
         BluetoothSocket sockFallback = null;
 
         Log.d(TAG, "Starting Bluetooth connection..");
-    	try {
-    		sock = dev.createRfcommSocketToServiceRecord(MY_UUID);
-    		//try { Thread.sleep(500); } catch (Exception e) {};
-    		sock.connect();
+        try {
+            sock = dev.createRfcommSocketToServiceRecord(MY_UUID);
+            sock.connect();
         } catch (Exception e1) {
             Log.e(TAG, "There was an error while establishing Bluetooth connection. Falling back", e1);
             Class<?> clazz = sock.getRemoteDevice().getClass();
@@ -57,6 +56,6 @@ public class BluetoothManager {
             }
         }
 
-    	return sock;
+        return sock;
     }
 }

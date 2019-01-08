@@ -9,9 +9,9 @@ import com.github.pires.obd.commands.ObdCommand;
 import com.github.pires.obd.commands.protocol.*;
 import com.github.pires.obd.enums.ObdProtocols;
 import edu.umich.carlab.Constants;
-import edu.umich.carlab.config.ObdConfig;
+import edu.umich.carlab.hal.controllers.ObdConfig;
 import edu.umich.carlab.io.ObdCommandJob;
-import edu.umich.carlab.sources.sensors.ObdSensors;
+import edu.umich.carlab.sensors.ObdSensors;
 import edu.umich.carlab.utils.NotificationsHelper;
 
 import java.io.IOException;
@@ -24,12 +24,11 @@ import java.util.UUID;
  */
 
 public class OBDConnTimerTask extends TimerTask {
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     final String TAG = BluetoothConnService.class.getName();
+    public BluetoothSocket socket;
     BluetoothConnService service;
     SharedPreferences prefs;
-
-    public BluetoothSocket socket;
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     public OBDConnTimerTask(BluetoothConnService service, SharedPreferences prefs) {
         this.service = service;
@@ -51,20 +50,19 @@ public class OBDConnTimerTask extends TimerTask {
                 res.append(c);
             }
 
-        } catch ( IOException e) {
+        } catch (IOException e) {
             Log.v(TAG, "OK... fine read returned -1 as expected.");
         }
         return res.toString();
     }
 
 
-    Float runCommandSync (ObdCommand obdCommand) throws Exception {
+    Float runCommandSync(ObdCommand obdCommand) throws Exception {
         ObdCommandJob job = new ObdCommandJob(obdCommand);
         job.getCommand().run(socket.getInputStream(), socket.getOutputStream());
         float responseVal = ObdSensors.responseToFloat(job.getCommand());
         return responseVal;
     }
-
 
 
     @Override
@@ -104,10 +102,10 @@ public class OBDConnTimerTask extends TimerTask {
 
                     // TODO This should be in shared prefs. Ideally we have code that isn't OBD-device specific
 //                    if (myApp.collectionType == MyApplication.DataCollectionType.OBD1) {
-                        String flushed = flushInput();
-                        Thread.sleep(1500);
-                        flushed = flushInput();
-                        Thread.sleep(1500);
+                    String flushed = flushInput();
+                    Thread.sleep(1500);
+                    flushed = flushInput();
+                    Thread.sleep(1500);
 //                    }
 
                     Log.d(TAG, "Queueing jobs for connection configuration..");
@@ -147,7 +145,6 @@ public class OBDConnTimerTask extends TimerTask {
             }
         }
     }
-
 
 
     /**

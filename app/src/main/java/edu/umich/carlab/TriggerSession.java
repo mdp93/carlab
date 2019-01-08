@@ -1,4 +1,4 @@
-package edu.umich.carlab.triggers;
+package edu.umich.carlab;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,13 +6,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.widget.Toast;
-import edu.umich.carlab.CLService;
-import edu.umich.carlab.Constants;
 import edu.umich.carlab.clog.CLog;
 import edu.umich.carlab.utils.Utilities;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
-import static edu.umich.carlab.triggers.TriggerSession.SessionState.*;
+import static edu.umich.carlab.TriggerSession.SessionState.*;
 
 public abstract class TriggerSession extends BroadcastReceiver {
     protected Context context;

@@ -1,7 +1,6 @@
 package edu.umich.carlab.net;
 
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.*;
@@ -17,46 +16,45 @@ import java.util.Timer;
 
 /**
  * Bluetooth service. Performs two main functions.
- *  1. Check if the OBD device is within range
- *  2. Do the setup process with a connected OBD device with error checking
- *
+ * 1. Check if the OBD device is within range
+ * 2. Do the setup process with a connected OBD device with error checking
+ * <p>
  * Before any app performs Bluetooth-related activities, they have to bind to
  * this service and ask if the BT device is connected. If it isn't connected, they
  * don't try to perform the action. If the action fails and the pipe breaks, they send
  * a broadast.
- *
+ * <p>
  * This service listens to the broadcast. When it receives the broadcast, it tries to
  * re-establish the connection. The main thing is we have to ensure the state of the
  * Bluetooth socket remains across multiple invocations of this Service. I.e., this
  * service cannot be destroyed altogether during the duration of a CL connection.
  * We can do this by using a thread and keeping it alive.
- *
+ * <p>
  * Useful tips: https://medium.com/@workingkills/10-things-didn-t-know-about-android-s-service-component-a2880b74b2b3
- *      => Services come and go all the time.
- *      => Put business logic elsewhere
- *      => Service runs on main thread by default
- *      => ***There can only be one instance of a Service at a time***
- *
+ * => Services come and go all the time.
+ * => Put business logic elsewhere
+ * => Service runs on main thread by default
+ * => ***There can only be one instance of a Service at a time***
  */
 
 public class BluetoothConnService extends Service {
-    final IBinder mBinder = new BluetoothConnService.LocalBinder();
     public final String TAG = BluetoothConnService.class.getName();
-
-
-    BluetoothAdapter btAdapter;
+    public final long MINUTE = 60 * 1000;
+    final IBinder mBinder = new BluetoothConnService.LocalBinder();
+    final long FIVE_MINUTES = MINUTE * 5;
+    public long lastSuccessfulConnection = 0;
     SharedPreferences prefs;
     OBDConnTimerTask obdConnTimerTask;
-
     boolean connected = false;
     BluetoothDevice dev = null;
     BluetoothSocket socket = null;
     Timer timer = null;
-    public final long MINUTE = 60*1000;
-    final long FIVE_MINUTES = MINUTE*5;
-    public long lastSuccessfulConnection = 0;
-
-
+    BroadcastReceiver bluetoothFailed = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            connectionFailed();
+        }
+    };
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -74,7 +72,6 @@ public class BluetoothConnService extends Service {
 
         return Service.START_STICKY;
     }
-
 
     /**
      * We should confirm that this is only called if the service is actually starting.
@@ -96,21 +93,11 @@ public class BluetoothConnService extends Service {
         timer.scheduleAtFixedRate(obdConnTimerTask, 0, MINUTE);
     }
 
-
-
     @Override
     public void onDestroy() {
         Log.e(TAG, "On destroy bluetooth conn!!");
         unregisterReceiver(bluetoothFailed);
         timer.cancel();
-    }
-
-
-    public class LocalBinder extends Binder {
-        public BluetoothConnService getService() {
-            // Return this instance of LocalService so clients can call public methods
-            return BluetoothConnService.this;
-        }
     }
 
     @Override
@@ -143,15 +130,6 @@ public class BluetoothConnService extends Service {
         return socket;
     }
 
-
-    BroadcastReceiver bluetoothFailed = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            connectionFailed();
-        }
-    };
-
-
     public synchronized void connectionFailed() {
         if (!connected) return;
         connected = false;
@@ -160,7 +138,6 @@ public class BluetoothConnService extends Service {
         Timer tmpTimer = new Timer();
         tmpTimer.schedule(new OBDConnTimerTask(this, prefs), 0);
     }
-
 
     /**
      * This means the OBD is not nearby. That means we
@@ -173,7 +150,7 @@ public class BluetoothConnService extends Service {
         }
     }
 
-    public void connectionSucceeded (BluetoothSocket socket) {
+    public void connectionSucceeded(BluetoothSocket socket) {
         connected = true;
         // This means we haven't connected in a while.
         // And this re-establishment isn't due to a temporary break
@@ -185,6 +162,13 @@ public class BluetoothConnService extends Service {
         }
         lastSuccessfulConnection = System.currentTimeMillis();
         this.socket = socket;
+    }
+
+    public class LocalBinder extends Binder {
+        public BluetoothConnService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return BluetoothConnService.this;
+        }
     }
 }
 

@@ -7,10 +7,10 @@ import edu.umich.carlab.CLService;
 import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.hal.controllers.*;
-import edu.umich.carlab.sources.sensors.ObdSensors;
-import edu.umich.carlab.sources.sensors.OpenXcSensors;
-import edu.umich.carlab.sources.sensors.PhoneSensors;
-import edu.umich.carlab.sources.sensors.WebSensors;
+import edu.umich.carlab.sensors.ObdSensors;
+import edu.umich.carlab.sensors.OpenXcSensors;
+import edu.umich.carlab.sensors.PhoneSensors;
+import edu.umich.carlab.sensors.WebSensors;
 
 import java.util.ArrayList;
 import java.util.List;

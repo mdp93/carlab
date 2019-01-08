@@ -1,4 +1,4 @@
-package edu.umich.carlab.apps;
+package edu.umich.carlab.loadable;
 
 import android.app.Activity;
 import android.util.Pair;
@@ -9,12 +9,6 @@ import java.util.List;
 
 
 public interface IApp {
-
-    enum Type {
-        DAA,
-        DCT,
-        DEP
-    }
 
     /**
      * New data passed into the app. This data is meant for app internal functions. The app may
@@ -39,21 +33,6 @@ public interface IApp {
      * @return List of sensors -- pairs <device, sensor>
      */
     public List<Pair<String, String>> getSensors();
-
-
-    public List<String> getDependencies();
-    public Type getType();
-
-
-    /**
-     * The URL this app wants to send the data to. CarLab takes care of data uploading. It batches
-     * uploads and compresses chunks of data going to the same place and finds the best time to do
-     * the uploading, so it's best to handle that globally in CarLab (OPA service).
-     * @return URL
-     */
-    public String getURL();
-    public boolean getUploadDataCheck();
-    public String getDescription();
 
 
     /**

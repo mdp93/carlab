@@ -24,6 +24,24 @@ public class GetLatestTrip extends BroadcastReceiver {
     String TAG = "GetLatestTrip";
     Context context;
     SharedPreferences prefs;
+    Response.Listener<String> gotLatestTrip = new Response.Listener<String>() {
+        @Override
+        public void onResponse(String responseTripNum) {
+            try {
+                int tripOffset = Integer.parseInt(responseTripNum);
+                prefs.edit().putInt(Constants.Trip_Id_Offset, tripOffset).apply();
+                Utilities.cancelInit(context);
+            } catch (Exception e) {
+                Log.e(TAG, "Error parsing JSON of list of uploaded receipts");
+            }
+        }
+    };
+    Response.ErrorListener gotLatestError = new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            // Error!
+        }
+    };
 
     /**
      * Make a volley request and get the latest.
@@ -42,33 +60,11 @@ public class GetLatestTrip extends BroadcastReceiver {
         // Get the list of currently uploaded receipts. Only upload ones that weren't successfully
         // uploaded and processed
         StringRequest myReq = new StringRequest(Request.Method.GET,
-                Constants.LATEST_TRIP_URL+ "?uid=" + UID,
+                Constants.LATEST_TRIP_URL + "?uid=" + UID,
                 gotLatestTrip,
                 gotLatestError) {
         };
 
         queue.add(myReq);
     }
-
-
-
-    Response.Listener<String> gotLatestTrip = new Response.Listener<String>() {
-        @Override
-        public void onResponse(String responseTripNum) {
-            try {
-                int tripOffset = Integer.parseInt(responseTripNum);
-                prefs.edit().putInt(Constants.Trip_Id_Offset, tripOffset).apply();
-                Utilities.cancelInit(context);
-            } catch (Exception e) {
-                Log.e(TAG, "Error parsing JSON of list of uploaded receipts");
-            }
-        }
-    };
-
-    Response.ErrorListener gotLatestError = new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-            // Error!
-        }
-    };
 }
