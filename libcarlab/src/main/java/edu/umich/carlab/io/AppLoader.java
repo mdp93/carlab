@@ -20,10 +20,18 @@ import java.util.*;
 public class AppLoader {
     final static String TAG = "AppLoader";
 
-    public static final AppLoader instance = new AppLoader();
+    private static AppLoader instance = null;
     private List<Class<?>> loadedApps = new ArrayList<>();
 
     private AppLoader() {}
+
+    public static AppLoader getInstance() {
+        if (instance == null) {
+            instance = new AppLoader();
+        }
+
+        return instance;
+    }
 
     public void loadApp(Class<?> cls) {
         loadedApps.add(cls);

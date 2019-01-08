@@ -301,7 +301,7 @@ public class CLService extends Service implements CLDataProvider {
      */
     private void bringAppsToLife() {
 
-        List<App> apps = AppLoader.instance.instantiateApps(this, this);
+        List<App> apps = AppLoader.getInstance().instantiateApps(this, this);
         for (App appInstance : apps) {
             String classname = appInstance.getClass().getCanonicalName();
             runningApps.put(classname, appInstance);
