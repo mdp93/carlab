@@ -65,30 +65,6 @@ public class UploadFiles extends BroadcastReceiver {
         };
 
         queue.add(myReq);
-
-
-        // Upload the trip records
-        final TripLog tripLog = TripLog.getInstance(context);
-        List<TripRecord> records = tripLog.readNotUploadedAndFilled();
-        for (final TripRecord record : records) {
-//            // 1. Upload it
-            queue.add(new StringRequest(Request.Method.GET,
-                    Constants.SURVEY_UPLOAD_URL
-                            + "?uid=" + UID
-                            + "&tripid=" + record.getID()
-                            + "&response=" + record.getSurveyResponse(),
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            // 2. If we get a successful response, then set the column to True
-                            record.setSurveyUploaded(true);
-                            // 3. Update the record
-                            tripLog.updateRecord(record);
-                        }
-                    },
-                    volleyError) {
-            });
-        }
     }
 
 

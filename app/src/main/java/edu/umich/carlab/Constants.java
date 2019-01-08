@@ -28,7 +28,6 @@ public class Constants {
     public static final String SigninURL = BASE_URL + "createaccount";
     public static final String TripEndURL = BASE_URL + "endedtrip";
     public static final String DEFAULT_UPLOAD_URL = BASE_URL + "/upload";
-    public static final String MEDIA_UPLOAD_URL = BASE_URL + "/uploadMedia";
     public static final String SURVEY_UPLOAD_URL = BASE_URL + "/uploadSurvey";
     public static final String LIST_UPLOADED_URL = BASE_URL + "/uploaded";
     public static final String LATEST_TRIP_URL = BASE_URL + "/latestTrip";
