@@ -20,7 +20,7 @@ public abstract class App implements IApp {
     public List<String> dependencies = new ArrayList<>();
     public String description = "";
     protected Context context;
-    CLDataProvider cl;
+    public CLDataProvider cl;
     boolean uploadData = true;
     String URL = Constants.DEFAULT_UPLOAD_URL;
 

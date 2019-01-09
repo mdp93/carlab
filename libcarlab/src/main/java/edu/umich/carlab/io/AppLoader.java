@@ -8,7 +8,9 @@ import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.Constants;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.loadable.IApp;
+import edu.umich.carlab.loadable.Middleware;
 import edu.umich.carlab.clog.CLog;
+
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -22,6 +24,8 @@ public class AppLoader {
 
     private static AppLoader instance = null;
     private List<Class<?>> loadedApps = new ArrayList<>();
+    private Map<String, Middleware> loadedMiddleware = new HashMap<>();
+
 
     private AppLoader() {}
 
@@ -35,6 +39,17 @@ public class AppLoader {
 
     public void loadApp(Class<?> cls) {
         loadedApps.add(cls);
+    }
+
+
+    public void loadMiddleware(Middleware middleware) {
+        loadedMiddleware.put(middleware.getName(), middleware);
+    }
+
+
+
+    public Map<String, Middleware> getMiddleware() {
+        return loadedMiddleware;
     }
 
     public List<App> instantiateApps(CLDataProvider clDataProvider, Context context) {
@@ -52,4 +67,6 @@ public class AppLoader {
 
         return instantiatedApps;
     }
+
+
 }

@@ -7,6 +7,8 @@ import edu.umich.carlab.CLService;
 import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.hal.controllers.*;
+import edu.umich.carlab.io.AppLoader;
+import edu.umich.carlab.loadable.Middleware;
 import edu.umich.carlab.sensors.ObdSensors;
 import edu.umich.carlab.sensors.OpenXcSensors;
 import edu.umich.carlab.sensors.PhoneSensors;
@@ -190,6 +192,15 @@ public class HardwareAbstractionLayer {
         List<DataMarshal.DataObject> splitObjects = new ArrayList<>();
         if (dataObject.device.equals(PhoneSensors.DEVICE)){
             Map<String, Float> splitValues = PhoneSensors.splitValues(dataObject);
+            for (Map.Entry<String, Float> sensorValue : splitValues.entrySet()) {
+                DataMarshal.DataObject dObjectClone = dataObject.clone();
+                dObjectClone.sensor = sensorValue.getKey();
+                dObjectClone.value = new Float [] { sensorValue.getValue() };
+                splitObjects.add(dObjectClone);
+            }
+        } else if (AppLoader.getInstance().getMiddleware().containsKey(dataObject.device)) {
+            Middleware middleware = AppLoader.getInstance().getMiddleware().get(dataObject.device);
+            Map<String, Float> splitValues = middleware.splitValues(dataObject);
             for (Map.Entry<String, Float> sensorValue : splitValues.entrySet()) {
                 DataMarshal.DataObject dObjectClone = dataObject.clone();
                 dObjectClone.sensor = sensorValue.getKey();
