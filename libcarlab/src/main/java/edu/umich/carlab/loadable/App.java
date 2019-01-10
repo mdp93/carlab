@@ -66,11 +66,11 @@ public abstract class App implements IApp {
     public void shutdown() {
     }
 
-    void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float value) {
+    public void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float value) {
         outputData(APP, dObject, sensor, new Float[]{ value });
     }
 
-    void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float[] value) {
+    public void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float[] value) {
         DataMarshal.DataObject secondaryDataObject = dObject.clone();
         secondaryDataObject.device = APP;
         secondaryDataObject.sensor = sensor;
