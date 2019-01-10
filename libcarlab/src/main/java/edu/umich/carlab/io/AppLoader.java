@@ -37,13 +37,15 @@ public class AppLoader {
         return instance;
     }
 
-    public void loadApp(Class<?> cls) {
+    public AppLoader loadApp(Class<?> cls) {
         loadedApps.add(cls);
+        return this;
     }
 
 
-    public void loadMiddleware(Middleware middleware) {
+    public AppLoader loadMiddleware(Middleware middleware) {
         loadedMiddleware.put(middleware.getName(), middleware);
+        return this;
     }
 
 
