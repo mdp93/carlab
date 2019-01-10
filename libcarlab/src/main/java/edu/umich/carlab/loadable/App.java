@@ -66,6 +66,18 @@ public abstract class App implements IApp {
     public void shutdown() {
     }
 
+    void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float value) {
+        outputData(APP, dObject, sensor, new Float[]{ value });
+    }
+
+    void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float[] value) {
+        DataMarshal.DataObject secondaryDataObject = dObject.clone();
+        secondaryDataObject.device = APP;
+        secondaryDataObject.sensor = sensor;
+        secondaryDataObject.value = value;
+        cl.newData(secondaryDataObject);
+    }
+
     /********************************
      * Activity callbacks that the MapView needs.
      * We mights'well make it part of the App standard so other's can benefit from it too
