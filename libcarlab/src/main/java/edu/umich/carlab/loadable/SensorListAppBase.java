@@ -72,6 +72,9 @@ public class SensorListAppBase extends App {
     @Override
     public void newData(DataMarshal.DataObject dataObject) {
         if (!initialized) return;
+        
+        super.newData(dataObject);
+        
         if (dataObject.dataType != DataMarshal.MessageType.DATA)
             return;
 
