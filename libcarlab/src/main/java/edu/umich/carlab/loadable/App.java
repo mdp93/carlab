@@ -10,7 +10,9 @@ import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class App implements IApp {
     final static String TAG = "App base";
@@ -24,20 +26,45 @@ public abstract class App implements IApp {
     boolean uploadData = true;
     String URL = Constants.DEFAULT_UPLOAD_URL;
 
-    private App() {
-    }
+    Map<String, Map<String, Float[]>> latestData = new HashMap<>();
+    Map<String, Map<String, Long>> latestDataTime = new HashMap<>();
 
-    ;
+    private App() {}
 
     public App(CLDataProvider cl, Context context) {
         this.cl = cl;
         this.context = context;
     }
 
-    @Override
-    public void newData(DataMarshal.DataObject dObject) {
+
+    public boolean isValidData(DataMarshal.DataObject dObject) {
+        return (dObject.dataType == DataMarshal.MessageType.DATA)
+                && (dObject.value != null);
     }
 
+    @Override
+    public void newData(DataMarshal.DataObject dObject) {
+        if (!isValidData(dObject)) return;
+
+        if (!latestData.containsKey(dObject.device)) {
+            latestData.put(dObject.device, new HashMap<String, Float[]>());
+            latestDataTime.put(dObject.device, new HashMap<String, Long>());
+        }
+
+        latestData.get(dObject.device).put(dObject.sensor, dObject.value);
+        latestDataTime.get(dObject.device).put(dObject.sensor, System.currentTimeMillis());
+    }
+
+    public Float[] getLatestData(String device, String sensor) {
+        if (!latestData.containsKey(device)) return null;
+        if (!latestData.get(device).containsKey(sensor)) return null;
+        return latestData.get(device).get(sensor);
+    }
+
+
+    public void subscribe(String device, String sensor) {
+        sensors.add(new Pair<>(device, sensor));
+    }
 
     @Override
     public String getName() {
