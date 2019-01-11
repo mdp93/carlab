@@ -26,7 +26,7 @@ public abstract class App implements IApp {
     boolean uploadData = true;
     String URL = Constants.DEFAULT_UPLOAD_URL;
 
-    Map<String, Map<String, Float[]>> latestData = new HashMap<>();
+    Map<String, Map<String, DataMarshal.DataObject>> latestData = new HashMap<>();
     Map<String, Map<String, Long>> latestDataTime = new HashMap<>();
 
     private App() {}
@@ -47,15 +47,15 @@ public abstract class App implements IApp {
         if (!isValidData(dObject)) return;
 
         if (!latestData.containsKey(dObject.device)) {
-            latestData.put(dObject.device, new HashMap<String, Float[]>());
+            latestData.put(dObject.device, new HashMap<String, DataMarshal.DataObject>());
             latestDataTime.put(dObject.device, new HashMap<String, Long>());
         }
 
-        latestData.get(dObject.device).put(dObject.sensor, dObject.value);
+        latestData.get(dObject.device).put(dObject.sensor, dObject);
         latestDataTime.get(dObject.device).put(dObject.sensor, System.currentTimeMillis());
     }
 
-    public Float[] getLatestData(String device, String sensor) {
+    public DataMarshal.DataObject getLatestData(String device, String sensor) {
         if (!latestData.containsKey(device)) return null;
         if (!latestData.get(device).containsKey(sensor)) return null;
         return latestData.get(device).get(sensor);
