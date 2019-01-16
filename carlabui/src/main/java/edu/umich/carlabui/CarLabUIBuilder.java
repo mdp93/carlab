@@ -10,24 +10,31 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.GridLayout;
 import android.widget.TextView;
 import edu.umich.carlab.CLService;
 import edu.umich.carlab.Constants;
-import edu.umich.carlab.loadable.App;
+import edu.umich.carlab.TriggerSession;
 import edu.umich.carlab.clog.UploadLog;
+import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.net.CheckUpdate;
 import edu.umich.carlab.recurring.UploadFiles;
-import edu.umich.carlab.TriggerSession;
 import edu.umich.carlab.trips.TripLog;
 import edu.umich.carlab.trips.TripRecord;
 import edu.umich.carlab.utils.Utilities;
 
 import java.io.File;
+import java.util.Map;
 
 import static android.view.View.INVISIBLE;
 import static edu.umich.carlab.Constants.*;
@@ -45,9 +52,45 @@ public class CarLabUIBuilder {
     private int versionNumber = -1;
 
     private Activity mainActivity;
+    BroadcastReceiver updateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateButtonStyle();
+        }
+    };
+    /************************** CarLab Service Binding and Unbinding ************************/
+
+    BroadcastReceiver clStopped = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            showPendingSurveys();
+        }
+    };
     private View parentView;
     private String personID, devAddr;
     private Class<?> mainDisplayClass;
+    BroadcastReceiver clStarted = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            showAppViewIfRunning();
+        }
+    };
+    /************************** CarLab Service Binding and Unbinding ************************/
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            CLService.LocalBinder binder = (CLService.LocalBinder) service;
+            carlabService = binder.getService();
+            showAppViewIfRunning();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+
+        }
+    };
+
 
     public CarLabUIBuilder(Activity mainActivity, View parentView, String personID, String devAddr, int versionNumber, Class<?> mainDisplayClass) {
         this.mainActivity = mainActivity;
@@ -61,6 +104,7 @@ public class CarLabUIBuilder {
     public void onCreate() {
         prefs = PreferenceManager.getDefaultSharedPreferences(mainActivity);
         tripLog = TripLog.getInstance(mainActivity);
+
 
         pauseButton = (Button) parentView.findViewById(R.id.pauseButton);
         pauseButton.setOnClickListener(new View.OnClickListener() {
@@ -80,7 +124,7 @@ public class CarLabUIBuilder {
         });
 
 
-        checkUpdateButton = (Button)parentView.findViewById(R.id.checkUpdate);
+        checkUpdateButton = (Button) parentView.findViewById(R.id.checkUpdate);
         checkUpdateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,7 +132,7 @@ public class CarLabUIBuilder {
             }
         });
 
-        uploadFilesButton = (Button)parentView.findViewById(R.id.flushFiles);
+        uploadFilesButton = (Button) parentView.findViewById(R.id.flushFiles);
         uploadFilesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,7 +174,6 @@ public class CarLabUIBuilder {
         checkAndRequestLocPermission();
     }
 
-
     public void checkUpdate() {
         boolean neededUpdate = prefs.getBoolean(Experiment_New_Version_Detected, false);
         if (neededUpdate) {
@@ -171,15 +214,6 @@ public class CarLabUIBuilder {
         mainActivity.registerReceiver(clStarted, new IntentFilter(DONE_INITIALIZING_CL));
     }
 
-
-    BroadcastReceiver updateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            updateButtonStyle();
-        }
-    };
-
-
     void updateButtonStyle() {
         TriggerSession.SessionState sessionState = TriggerSession.SessionState.values()[prefs.getInt(Constants.Session_State_Key, 1)];
         if (sessionState == TriggerSession.SessionState.OFF) {
@@ -194,7 +228,6 @@ public class CarLabUIBuilder {
             pauseButton.setEnabled(true);
         }
     }
-
 
     /**
      * Function to get permission for location
@@ -227,56 +260,69 @@ public class CarLabUIBuilder {
         }
     }
 
-    /************************** CarLab Service Binding and Unbinding ************************/
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            CLService.LocalBinder binder = (CLService.LocalBinder) service;
-            carlabService = binder.getService();
-            showAppViewIfRunning();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-
-        }
-    };
-
-
     void showAppViewIfRunning() {
         // Connect to CarLab Service.
         // We assume it running our basic static app.
         // Get the view for this static app and display it
-        // carlabService.addStaticApp(staticApp);
-        app = carlabService.getRunningApp(mainDisplayClass.getName());
-        if (app == null) {
+        Map<String, App> allRunningApps = carlabService.getAllRunningApps();
+        // app = carlabService.getRunningApp(mainDisplayClass.getName());
+
+        if (allRunningApps == null) {
             // This means nothing is running currently, which is entirely possible.
             // Opening this activity doesn't run the app. It's based on triggers.
             showPendingSurveys();
         } else {
             visWrapper.removeAllViews();
-            View appView = app.initializeVisualization(mainActivity);
-            if (appView != null) visWrapper.addView(appView);
+            GridLayout gridLayout = new GridLayout(mainActivity);
+            visWrapper.addView(gridLayout);
+
+            for (final App app : allRunningApps.values()) {
+                Button appViewButton = new Button(mainActivity);
+                appViewButton.setText(app.getName());
+                gridLayout.addView(appViewButton);
+                gridLayout.setColumnCount(3);
+                gridLayout.setOrientation(GridLayout.VERTICAL);
+
+                appViewButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        LayoutInflater inflater = mainActivity.getLayoutInflater();
+                        View middlewareWrapper = inflater.inflate(R.layout.middleware_wrapper, null);
+                        TextView middlewareTitle = middlewareWrapper.findViewById(R.id.middleware_title);
+                        middlewareTitle.setText(app.getName());
+
+
+                        Button backButton = middlewareWrapper.findViewById(R.id.middleware_back);
+                        backButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                showAppViewIfRunning();
+                            }
+                        });
+
+                        FrameLayout middlewareContent = middlewareWrapper.findViewById(R.id.middleware_content);
+                        View appView = app.initializeVisualization(mainActivity);
+                        if (appView != null) middlewareContent.addView(appView);
+                        visWrapper.removeAllViews();
+                        visWrapper.addView(middlewareWrapper);
+                    }
+                });
+            }
+//            for (App app : allRunningApps.values()) {
+//                // XXX Don't initialize all visualizations right now. Just create a placeholder frame layout
+//                // TODO
+//                // FIXME
+//                LayoutInflater inflater = mainActivity.getLayoutInflater();
+//                View middlewareWrapper = inflater.inflate(R.layout.middleware_wrapper, null);
+//                TextView middlewareTitle = middlewareWrapper.findViewById(R.id.middleware_title);
+//                middlewareTitle.setText(app.getName());
+//
+//                FrameLayout middlewareContent = middlewareWrapper.findViewById(R.id.middleware_content);
+//                View appView = app.initializeVisualization(mainActivity);
+//                if (appView != null) middlewareContent.addView(appView);
+//            }
         }
     }
-
-    /************************** CarLab Service Binding and Unbinding ************************/
-
-
-    BroadcastReceiver clStopped = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            showPendingSurveys();
-        }
-    };
-    BroadcastReceiver clStarted = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            showAppViewIfRunning();
-        }
-    };
-
 
     void showPendingSurveys() {
         visWrapper.removeAllViews();

@@ -153,6 +153,11 @@ public class CLService extends Service implements CLDataProvider {
         return runningApps.get(classname);
     }
 
+
+    public Map<String, App> getAllRunningApps() {
+        return runningApps;
+    }
+
     /**
      * The app fragment will bind to this on resume and get the initial values from this function
      *

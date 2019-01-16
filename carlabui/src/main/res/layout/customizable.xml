@@ -62,14 +62,12 @@
 
 
     <FrameLayout
-        android:id="@+id/visWrapper"
-        android:layout_width="368dp"
-        android:layout_height="0dp"
-        android:layout_weight="10"
-        android:layout_gravity="center"
-        >
-    </FrameLayout>
-
+            android:id="@+id/visWrapper"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="10"
+            android:layout_gravity="center"
+    />
 
 
     <FrameLayout
