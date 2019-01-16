@@ -2,6 +2,7 @@ package edu.umich.carlab.loadable;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
@@ -21,21 +22,32 @@ public abstract class App implements IApp {
     public List<Pair<String, String>> sensors = new ArrayList<>();
     public List<String> dependencies = new ArrayList<>();
     public String description = "";
-    protected Context context;
     public CLDataProvider cl;
+    protected Context context;
     boolean uploadData = true;
     String URL = Constants.DEFAULT_UPLOAD_URL;
+    SharedPreferences prefs;
 
     Map<String, Map<String, DataMarshal.DataObject>> latestData = new HashMap<>();
     Map<String, Map<String, Long>> latestDataTime = new HashMap<>();
 
-    private App() {}
+    private App() {
+    }
 
     public App(CLDataProvider cl, Context context) {
         this.cl = cl;
         this.context = context;
+        prefs = context.getSharedPreferences(this.getClass().getCanonicalName(), Context.MODE_PRIVATE);
     }
 
+
+    protected double loadValue(String variableName, Double defaultValue) {
+        return prefs.getFloat(variableName, defaultValue.floatValue());
+    }
+
+    protected void saveValue(String variableName, Double value) {
+        prefs.edit().putFloat(variableName, value.floatValue()).commit();
+    }
 
     public boolean isValidData(DataMarshal.DataObject dObject) {
         return (dObject.dataType == DataMarshal.MessageType.DATA)
@@ -94,7 +106,7 @@ public abstract class App implements IApp {
     }
 
     public void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float value) {
-        outputData(APP, dObject, sensor, new Float[]{ value });
+        outputData(APP, dObject, sensor, new Float[]{value});
     }
 
     public void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float[] value) {
