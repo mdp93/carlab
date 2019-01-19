@@ -292,13 +292,13 @@ public class CarLabUIBuilder {
                         middlewareTitle.setText(app.getName());
 
 
-                        Button backButton = middlewareWrapper.findViewById(R.id.middleware_back);
-                        backButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                showAppViewIfRunning();
-                            }
-                        });
+//                        Button backButton = middlewareWrapper.findViewById(R.id.middleware_back);
+//                        backButton.setOnClickListener(new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View view) {
+//                                showAppViewIfRunning();
+//                            }
+//                        });
 
                         FrameLayout middlewareContent = middlewareWrapper.findViewById(R.id.middleware_content);
                         View appView = app.initializeVisualization(mainActivity);

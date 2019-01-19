@@ -37,7 +37,9 @@ public abstract class App implements IApp {
     public App(CLDataProvider cl, Context context) {
         this.cl = cl;
         this.context = context;
-        prefs = context.getSharedPreferences(this.getClass().getCanonicalName(), Context.MODE_PRIVATE);
+
+        if (context != null)
+            prefs = context.getSharedPreferences(this.getClass().getCanonicalName(), Context.MODE_PRIVATE);
     }
 
 

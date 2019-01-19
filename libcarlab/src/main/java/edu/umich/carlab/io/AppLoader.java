@@ -43,10 +43,28 @@ public class AppLoader {
     }
 
 
+    public AppLoader loadApps(Class<?>[] classes) {
+        for (Class<?> cls : classes)
+            loadedApps.add(cls);
+        return this;
+    }
+
+
+
+    public AppLoader loadMiddlewares(Middleware[] middlewares) {
+        for (Middleware middleware : middlewares)
+            loadedMiddleware.put(middleware.getName(), middleware);
+        return this;
+    }
+
+
+
+
     public AppLoader loadMiddleware(Middleware middleware) {
         loadedMiddleware.put(middleware.getName(), middleware);
         return this;
     }
+
 
 
 

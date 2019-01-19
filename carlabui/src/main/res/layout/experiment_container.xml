@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background">
+
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="10"
+            android:id="@+id/main_wrapper"
+    />
+
+    <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/controlButtonHeight"
+    >
+
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/controlButtonHeight"
+        >
+
+            <Button
+                    android:text="Info"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/showInfo"
+            />
+
+            <Button
+                    android:text="Middleware"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/showMiddleware"
+            />
+
+
+            <Button
+                    android:text="Turn On"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/toggleCarlab"
+            />
+
+            <Button
+                    android:text="Pause current session"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+            />
+
+
+            <Button
+                    android:text="Save current session to file"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+            />
+
+
+            <Button
+                    android:text="Run trial from file"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+            />
+
+
+            <Button
+                    android:text="Download Update"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/downloadUpdate"
+            />
+
+
+            <Button
+                    android:text="Upload Trips"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/uploadTrips"
+            />
+
+
+            <Button
+                    android:text="Show dependency map"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+            />
+
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+</LinearLayout>

@@ -11,15 +11,6 @@
             android:layout_height="75dp"
             android:orientation="horizontal">
 
-        <Button
-                android:id="@+id/middleware_back"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_gravity="center"
-                android:text="Back"
-                android:scaleType="fitCenter"/>
-
         <TextView
                 android:id="@+id/middleware_title"
                 android:layout_width="0dp"
