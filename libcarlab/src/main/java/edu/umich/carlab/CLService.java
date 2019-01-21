@@ -333,7 +333,7 @@ public class CLService extends Service implements CLDataProvider {
      * the DCTFragment that's responsible for flashing various
      * colors.
      */
-    public void newData(DataMarshal.DataObject dataObject) {
+    public synchronized void newData(DataMarshal.DataObject dataObject) {
         if (dataObject == null) return;
         if (dataMultiplexing == null) return;
         if (prefs.getInt(

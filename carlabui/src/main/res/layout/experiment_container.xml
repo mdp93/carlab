@@ -48,23 +48,26 @@
             />
 
             <Button
-                    android:text="Pause current session"
+                    android:text="Pause"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/pauseCarlab"
             />
 
 
             <Button
-                    android:text="Save current session to file"
+                    android:text="Save Trace"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/saveCurrentSessionButton"
             />
 
 
             <Button
-                    android:text="Run trial from file"
+                    android:text="Load Trace"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/loadFromTrace"
             />
 
 
@@ -85,9 +88,10 @@
 
 
             <Button
-                    android:text="Show dependency map"
+                    android:text="Dep. Map"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:id="@+id/showDependencyMap"
             />
 
 

@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
 import edu.umich.carlab.CLService;
+import edu.umich.carlab.DataMarshal;
+import edu.umich.carlab.TriggerSession;
 import edu.umich.carlab.io.AppLoader;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.net.CheckUpdate;
@@ -29,7 +31,7 @@ import static edu.umich.carlabui.Constants.ManualChoiceKey;
 public class ExperimentBaseActivity extends Activity {
     Button  showMiddleware,
             manualOnOffToggle,
-            pauseCarLab,
+            pauseCarlab,
             saveCurrentTrace,
             runFromTrace,
             downloadUpdate,
@@ -52,9 +54,12 @@ public class ExperimentBaseActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.experiment_container);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        appModels = new ArrayList<>();
+        appModelIndexMap = new HashMap<>();
 
         wireUI();
         loadAndInitializeInfo();
+        updatePauseButton();
         Utilities.scheduleOnce(this, ManualTrigger.class, 0);
     }
 
@@ -62,17 +67,30 @@ public class ExperimentBaseActivity extends Activity {
     public void onResume() {
         super.onResume();
         updateTriggerButton();
+        updatePauseButton();
         bindService(
                 new Intent(
                         this,
                         CLService.class),
                 mConnection,
                 Context.BIND_AUTO_CREATE);
+
+        registerReceiver(appStateReceiver, appStateIntentFilter);
+        registerReceiver(clStopped, new IntentFilter(CLSERVICE_STOPPED));
+        registerReceiver(updateReceiver, new IntentFilter(STATUS_CHANGED));
+        registerReceiver(clStarted, new IntentFilter(DONE_INITIALIZING_CL));
     }
 
     @Override
     public void onStop() {
+        super.onStop();
+
         unbindService(mConnection);
+
+        unregisterReceiver(appStateReceiver);
+        unregisterReceiver(clStopped);
+        unregisterReceiver(updateReceiver);
+        unregisterReceiver(clStarted);
     }
 
     void wireUI() {
@@ -92,6 +110,9 @@ public class ExperimentBaseActivity extends Activity {
 
         manualOnOffToggle = (Button) findViewById(R.id.toggleCarlab);
         manualOnOffToggle.setOnClickListener(toggleCarlab);
+
+        pauseCarlab = (Button)findViewById(R.id.pauseCarlab);
+        pauseCarlab.setOnClickListener(togglePauseCarlab);
     }
 
 
@@ -106,6 +127,28 @@ public class ExperimentBaseActivity extends Activity {
         mainWrapper.addView(infoView);
     }
 
+
+    /********************** Receivers for CarLab and status changes **********/
+    BroadcastReceiver updateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updatePauseButton();
+        }
+    };
+
+    BroadcastReceiver clStopped = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+        }
+    };
+
+    BroadcastReceiver clStarted = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updatePauseButton();
+        }
+    };
+
     /************************* UI callback functions *************************/
     View.OnClickListener toggleCarlab = new View.OnClickListener() {
         @Override
@@ -119,9 +162,45 @@ public class ExperimentBaseActivity extends Activity {
         }
     };
 
+    View.OnClickListener togglePauseCarlab = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            int sessionStateInt = prefs.getInt(edu.umich.carlab.Constants.Session_State_Key, 1);
+            TriggerSession.SessionState sessionState = TriggerSession.SessionState.values()[sessionStateInt];
+            if (sessionState == TriggerSession.SessionState.ON) {
+                prefs.edit().putInt(
+                        edu.umich.carlab.Constants.Session_State_Key,
+                        TriggerSession.SessionState.PAUSED.getValue()
+                ).apply();
+            } else {
+                prefs.edit().putInt(
+                        edu.umich.carlab.Constants.Session_State_Key,
+                        TriggerSession.SessionState.ON.getValue()
+                ).apply();
+            }
+            sendBroadcast(new Intent(STATUS_CHANGED));
+        }
+    };
+
     void updateTriggerButton() {
         boolean isOn = prefs.getBoolean(ManualChoiceKey, false);
         manualOnOffToggle.setText(isOn ? "Turn Off" : "Turn On");
+    }
+
+
+    void updatePauseButton() {
+        TriggerSession.SessionState sessionState = TriggerSession.SessionState.values()[prefs.getInt(edu.umich.carlab.Constants.Session_State_Key, 1)];
+        if (sessionState == TriggerSession.SessionState.OFF) {
+            pauseCarlab.setText(getString(R.string.carlab_running_button));
+            pauseCarlab.setEnabled(false);
+        } else {
+            if (sessionState == TriggerSession.SessionState.ON) {
+                pauseCarlab.setText(getString(R.string.carlab_running_button));
+            } else {
+                pauseCarlab.setText(getString(R.string.carlab_paused_button));
+            }
+            pauseCarlab.setEnabled(true);
+        }
     }
 
 
@@ -179,11 +258,11 @@ public class ExperimentBaseActivity extends Activity {
             FrameLayout middlewareGridLayout = (FrameLayout) inflater.inflate(R.layout.middleware_grid, null);
             GridView middlewareGrid = middlewareGridLayout.findViewById(R.id.middleware_grid);
 
+            appModels.clear();
+
             // If CarLab is running, we can create live middleware links
             // Otherwise, we will just use the static app loader
             List<App> allApps = AppLoader.getInstance().instantiateApps(null, null);
-            appModels = new ArrayList<>();
-            appModelIndexMap = new HashMap<>();
 
             for (App app : allApps) {
                 AppsAdapter.AppState appState = ACTIVE;
@@ -237,6 +316,39 @@ public class ExperimentBaseActivity extends Activity {
     };
     /*************************************************************************/
 
+    /**
+     * Once we receive any app state updates, we will change the app state.
+     */
+    IntentFilter appStateIntentFilter = new IntentFilter(edu.umich.carlab.Constants.INTENT_APP_STATE_UPDATE);
+    private BroadcastReceiver appStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //activeApps = prefs.getStringSet(Constants.ACTIVE_APPS_KEY, new HashSet<String>());
+
+            String appClassName = intent.getStringExtra("appClassName");
+            DataMarshal.MessageType appState = (DataMarshal.MessageType) intent.getSerializableExtra("appState");
+
+            // This means we haven't set up this app yet
+            if (appModelIndexMap == null) return;
+            if (!appModelIndexMap.containsKey(appClassName))
+                return;
+
+            int appIndex = appModelIndexMap.get(appClassName);
+
+            switch (appState) {
+                case ERROR:
+                    appModels.get(appIndex).state = AppsAdapter.AppState.ERROR;
+                    break;
+                case DATA:
+                    appModels.get(appIndex).state = AppsAdapter.AppState.DATA;
+                    break;
+                case STATUS:
+                    appModels.get(appIndex).state = AppsAdapter.AppState.PROCESSING;
+            }
+
+            appsAdapter.notifyDataSetChanged();
+        }
+    };
 
     /************************* CarLab service binding ************************/
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -253,6 +365,7 @@ public class ExperimentBaseActivity extends Activity {
         public void onServiceDisconnected(ComponentName arg0) {
             carlabService = null;
         }
-    };
+    }
+    ;
     /*************************************************************************/
 }
