@@ -69,6 +69,8 @@ public class CLService extends Service implements CLDataProvider {
     Map<String, App> runningApps;
     Map<String, Set<String>> dataMultiplexing;
 
+    boolean currentlyStarting = false;
+
     public CLService() {
         Log.e(TAG, "Service constructor");
     }
@@ -136,6 +138,10 @@ public class CLService extends Service implements CLDataProvider {
 
     public boolean isCarLabRunning() {
         return runningDataCollection;
+    }
+
+    public boolean carlabCurrentlyStarting() {
+return currentlyStarting;
     }
 
     /**
@@ -220,6 +226,7 @@ public class CLService extends Service implements CLDataProvider {
      */
     private void startupSequence() {
         runningDataCollection = true;
+        currentlyStarting = true;
         Runnable startupTask = new Runnable() {
             @Override
             public void run() {
@@ -249,6 +256,7 @@ public class CLService extends Service implements CLDataProvider {
 
                 // We can enable master switch now
                 Intent doneIntent = new Intent();
+                currentlyStarting = false;
                 doneIntent.setAction(DONE_INITIALIZING_CL);
                 CLService.this.sendBroadcast(doneIntent);
             }

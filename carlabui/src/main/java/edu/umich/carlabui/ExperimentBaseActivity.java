@@ -51,6 +51,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
     CLService carlabService;
     FrameLayout mainWrapper;
 
+    boolean mBound = false;
     InfoViewFragment infoFragment = new InfoViewFragment();
     MiddlewareGridFragment middlewareGridFragment = new MiddlewareGridFragment();
 
@@ -64,12 +65,15 @@ public class ExperimentBaseActivity extends AppCompatActivity
     BroadcastReceiver clStopped = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            updateTriggerButton();
         }
     };
     BroadcastReceiver clStarted = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             updatePauseButton();
+            manualOnOffToggle.setEnabled(true);
+            updateTriggerButton();
         }
     };
     /************************* UI callback functions *************************/
@@ -77,8 +81,15 @@ public class ExperimentBaseActivity extends AppCompatActivity
         @Override
         public void onClick(View view) {
             boolean isOn = prefs.getBoolean(ManualChoiceKey, false);
-            prefs.edit().putBoolean(ManualChoiceKey, !isOn).commit();
+            boolean setTo = !isOn;
+            prefs.edit().putBoolean(ManualChoiceKey, setTo).commit();
             updateTriggerButton();
+
+            if (setTo) {
+                manualOnOffToggle.setText("Starting");
+                manualOnOffToggle.setEnabled(false);
+            }
+
             sendBroadcast(new Intent(
                     ExperimentBaseActivity.this,
                     ManualTrigger.class));
@@ -168,7 +179,13 @@ public class ExperimentBaseActivity extends AppCompatActivity
             CLService.LocalBinder binder = (CLService.LocalBinder) service;
             carlabService = binder.getService();
 
-            // TODO Initialize the middleware view if that is currently loaded
+            mBound = true;
+            prefs   .edit()
+                    .putBoolean(
+                            ManualChoiceKey,
+                            carlabService.isCarLabRunning())
+                    .commit();
+            updateTriggerButton();
         }
 
         @Override
@@ -187,6 +204,8 @@ public class ExperimentBaseActivity extends AppCompatActivity
         wireUI();
         loadAndInitializeInfo();
         updatePauseButton();
+
+        manualOnOffToggle.setEnabled(false);
         Utilities.scheduleOnce(this, ManualTrigger.class, 0);
     }
 
@@ -195,6 +214,8 @@ public class ExperimentBaseActivity extends AppCompatActivity
         super.onResume();
         updateTriggerButton();
         updatePauseButton();
+
+        manualOnOffToggle.setEnabled(false);
         bindService(
                 new Intent(
                         this,
@@ -211,11 +232,19 @@ public class ExperimentBaseActivity extends AppCompatActivity
     public void onStop() {
         super.onStop();
 
-        unbindService(mConnection);
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
 
         unregisterReceiver(clStopped);
         unregisterReceiver(updateReceiver);
         unregisterReceiver(clStarted);
+    }
+
+    void enableOnOffButton() {
+        if (carlabService == null)
+            manualOnOffToggle.setEnabled(true);
     }
 
     void wireUI() {
@@ -235,6 +264,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
         manualOnOffToggle = (Button) findViewById(R.id.toggleCarlab);
         manualOnOffToggle.setOnClickListener(toggleCarlab);
+        manualOnOffToggle.setEnabled(false);
 
         pauseCarlab = (Button) findViewById(R.id.pauseCarlab);
         pauseCarlab.setOnClickListener(togglePauseCarlab);
@@ -255,8 +285,13 @@ public class ExperimentBaseActivity extends AppCompatActivity
     }
 
     void updateTriggerButton() {
-        boolean isOn = prefs.getBoolean(ManualChoiceKey, false);
-        manualOnOffToggle.setText(isOn ? "Turn Off" : "Turn On");
+        if (carlabService == null || carlabService.carlabCurrentlyStarting()) {
+            manualOnOffToggle.setEnabled(false);
+            manualOnOffToggle.setText("Starting");
+        } else {
+            manualOnOffToggle.setEnabled(true);
+            manualOnOffToggle.setText(carlabService.isCarLabRunning() ? "Turn Off" : "Turn On");
+        }
     }
 
     void updatePauseButton() {
