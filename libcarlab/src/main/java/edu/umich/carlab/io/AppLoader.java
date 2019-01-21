@@ -23,7 +23,7 @@ public class AppLoader {
     final static String TAG = "AppLoader";
 
     private static AppLoader instance = null;
-    private List<Class<?>> loadedApps = new ArrayList<>();
+    private Set<Class<?>> loadedApps = new HashSet<>();
     private Map<String, Middleware> loadedMiddleware = new HashMap<>();
 
 
@@ -38,14 +38,19 @@ public class AppLoader {
     }
 
     public AppLoader loadApp(Class<?> cls) {
+        if (loadedApps.contains(cls))
+            loadedApps.remove(cls);
         loadedApps.add(cls);
         return this;
     }
 
 
     public AppLoader loadApps(Class<?>[] classes) {
-        for (Class<?> cls : classes)
+        for (Class<?> cls : classes) {
+            if (loadedApps.contains(cls))
+                loadedApps.remove(cls);
             loadedApps.add(cls);
+        }
         return this;
     }
 

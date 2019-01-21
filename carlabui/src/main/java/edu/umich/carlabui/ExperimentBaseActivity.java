@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.*;
 import edu.umich.carlab.CLService;
 import edu.umich.carlab.DataMarshal;
@@ -197,9 +198,17 @@ public class ExperimentBaseActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);//will hide the title
+        getSupportActionBar().hide();
+
         setContentView(R.layout.experiment_container);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        if (prefs.getInt(Trip_Id_Offset, -1) == -1) {
+            Utilities.keepTryingInit(this);
+        }
 
         wireUI();
         loadAndInitializeInfo();

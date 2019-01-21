@@ -112,8 +112,14 @@ public class CLService extends Service implements CLDataProvider {
             }
 
             int tripOffset = prefs.getInt(Trip_Id_Offset, -1);
-            if (tripOffset == -1)
+            if (tripOffset == -1) {
+                Toast.makeText(
+                        this,
+                        "Couldn't start CarLab. Unable to get existing trip ID.",
+                        Toast.LENGTH_SHORT)
+                     .show();
                 return Service.START_NOT_STICKY;
+            }
 
             Log.e(TAG, "Service on start cmd: " + startTimestamp);
             NotificationsHelper.setNotificationForeground(this, NotificationsHelper.Notifications.COLLECTING_DATA);
@@ -209,7 +215,7 @@ return currentlyStarting;
 
         if (clTripWriter != null) {
             clTripWriter.stopTrip();
-            Utilities.wakeUpMainActivity(this);
+//            Utilities.wakeUpMainActivity(this);
         }
 
         Intent stoppedIntent = new Intent();

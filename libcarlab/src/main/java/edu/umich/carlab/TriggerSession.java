@@ -17,6 +17,7 @@ public abstract class TriggerSession extends BroadcastReceiver {
     Handler scheduleHandler;
     final String TAG = "Trigger";
     SessionState sessionState;
+
     protected SharedPreferences prefs;
 
     public enum SessionState {

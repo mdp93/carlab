@@ -11,14 +11,28 @@
     <android.support.v7.widget.AppCompatImageView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="10"
             app:srcCompat="@drawable/carlab"
             android:id="@+id/imageView"/>
+
+
     <TextView
             android:text="TextView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:id="@+id/uid_text"/>
+            android:id="@+id/app_name_text" android:fontFamily="@font/quicksand" android:textSize="24sp"
+            android:textAlignment="center"/>
+
+
+    <TextView
+            android:text="TextView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:id="@+id/uid_text" android:textSize="24sp" android:fontFamily="@font/quicksand"
+            android:textAlignment="center"/>
+
+
 
 </LinearLayout>

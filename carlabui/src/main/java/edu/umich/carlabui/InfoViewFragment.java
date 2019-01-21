@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import static edu.umich.carlab.Constants.UID_key;
+import static edu.umich.carlab.Constants.*;
 
 
 /**
@@ -82,6 +82,13 @@ public class InfoViewFragment extends Fragment {
         TextView uidText = layout.findViewById(R.id.uid_text);
         String UID = prefs.getString(UID_key, "UNDEFINED");
         uidText.setText("UID: " + UID);
+
+        TextView experimentNameTV = layout.findViewById(R.id.app_name_text);
+        String experimentName = prefs.getString(Experiment_Shortname, "Name");
+        Integer experimentId = prefs.getInt(Experiment_Id, 0);
+        Integer experimentVersion = prefs.getInt(Experiment_Version_Number, 0);
+        experimentNameTV.setText(String.format("(%d) %s v.%d", experimentId, experimentName, experimentVersion));
+
         return layout;
     }
 
