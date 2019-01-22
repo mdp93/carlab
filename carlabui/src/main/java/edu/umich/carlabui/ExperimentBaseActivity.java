@@ -40,7 +40,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
     Button showMiddleware,
             manualOnOffToggle,
             pauseCarlab,
-            saveCurrentTrace,
+            dumpModeButton,
             runFromTrace,
             downloadUpdate,
             uploadFiles,
@@ -60,21 +60,20 @@ public class ExperimentBaseActivity extends AppCompatActivity
     BroadcastReceiver updateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updatePauseButton();
+            updateButtons();
         }
     };
     BroadcastReceiver clStopped = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updateTriggerButton();
+            updateButtons();
         }
     };
     BroadcastReceiver clStarted = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updatePauseButton();
             manualOnOffToggle.setEnabled(true);
-            updateTriggerButton();
+            updateButtons();
         }
     };
     /************************* UI callback functions *************************/
@@ -84,7 +83,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
             boolean isOn = prefs.getBoolean(ManualChoiceKey, false);
             boolean setTo = !isOn;
             prefs.edit().putBoolean(ManualChoiceKey, setTo).commit();
-            updateTriggerButton();
+            updateButtons();
 
             if (setTo) {
                 manualOnOffToggle.setText("Starting");
@@ -172,6 +171,32 @@ public class ExperimentBaseActivity extends AppCompatActivity
         }
     };
 
+    View.OnClickListener dumpDataCallback = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
+
+            // If dump mode is OFF, then we turn it on along with manual switch to turn on carlab
+            if (!dumpMode)
+                prefs.edit()
+                        .putBoolean(Dump_Data_Mode_Key, true)
+                        .putBoolean(ManualChoiceKey, true)
+                        .commit();
+            // Else we just turn off carlab. Dump mode will be turned off once we're done saving in CL service
+            else
+                prefs.edit().putBoolean(ManualChoiceKey, false).commit();
+
+            updateButtons();
+
+            // If dump mode is now set to 1, we also want to turn on carlab.
+            // If it is set to 0, we also want to stop the carlab dump.
+
+            sendBroadcast(new Intent(
+                    ExperimentBaseActivity.this,
+                    ManualTrigger.class));
+        }
+    };
+
     /************************* CarLab service binding ************************/
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -186,7 +211,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
                             ManualChoiceKey,
                             carlabService.isCarLabRunning())
                     .commit();
-            updateTriggerButton();
+            updateButtons();
         }
 
         @Override
@@ -212,7 +237,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
         wireUI();
         loadAndInitializeInfo();
-        updatePauseButton();
+        updateButtons();
 
         manualOnOffToggle.setEnabled(false);
         Utilities.scheduleOnce(this, ManualTrigger.class, 0);
@@ -221,8 +246,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
     @Override
     public void onResume() {
         super.onResume();
-        updateTriggerButton();
-        updatePauseButton();
+        updateButtons();
 
         manualOnOffToggle.setEnabled(false);
         bindService(
@@ -277,6 +301,9 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
         pauseCarlab = (Button) findViewById(R.id.pauseCarlab);
         pauseCarlab.setOnClickListener(togglePauseCarlab);
+
+        dumpModeButton = (Button) findViewById(R.id.saveCurrentSessionButton);
+        dumpModeButton.setOnClickListener(dumpDataCallback);
     }
 
     // https://stackoverflow.com/questions/4932462/animate-the-transition-between-fragments
@@ -293,29 +320,54 @@ public class ExperimentBaseActivity extends AppCompatActivity
         replaceFragmentWithAnimation(infoFragment, "TAG");
     }
 
-    void updateTriggerButton() {
-        if (carlabService == null || carlabService.carlabCurrentlyStarting()) {
-            manualOnOffToggle.setEnabled(false);
-            manualOnOffToggle.setText("Starting");
-        } else {
-            manualOnOffToggle.setEnabled(true);
-            manualOnOffToggle.setText(carlabService.isCarLabRunning() ? "Turn Off" : "Turn On");
-        }
-    }
 
-    void updatePauseButton() {
+    void updateButtons() {
         TriggerSession.SessionState sessionState = TriggerSession.SessionState.values()[prefs.getInt(edu.umich.carlab.Constants.Session_State_Key, 1)];
+        Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
+
+        // Update the pause button
         if (sessionState == TriggerSession.SessionState.OFF) {
             pauseCarlab.setText(getString(R.string.carlab_running_button));
             pauseCarlab.setEnabled(false);
+
         } else {
             if (sessionState == TriggerSession.SessionState.ON) {
                 pauseCarlab.setText(getString(R.string.carlab_running_button));
             } else {
                 pauseCarlab.setText(getString(R.string.carlab_paused_button));
             }
+
             pauseCarlab.setEnabled(true);
         }
+
+
+        // Update the carlab on/off button
+        if (carlabService == null || carlabService.carlabCurrentlyStarting()) {
+            manualOnOffToggle.setEnabled(false);
+            manualOnOffToggle.setText("Starting");
+        } else if (dumpMode) {
+            manualOnOffToggle.setEnabled(false);
+            manualOnOffToggle.setText("Dumping data");
+        } else {
+            manualOnOffToggle.setEnabled(true);
+            manualOnOffToggle.setText(carlabService.isCarLabRunning() ? "Turn Off" : "Turn On");
+        }
+
+        // Update the dump mode button
+        if (carlabService == null || carlabService.carlabCurrentlyStarting()) {
+            dumpModeButton.setEnabled(false);
+            dumpModeButton.setText("Starting");
+        } else if (!carlabService.isCarLabRunning()) {
+            dumpModeButton.setEnabled(true);
+            dumpModeButton.setText("Start Data Dump");
+        } else if (carlabService.isCarLabRunning() && !dumpMode) {
+            dumpModeButton.setEnabled(false);
+            dumpModeButton.setText("CarLab running");
+        } else if (carlabService.isCarLabRunning() && dumpMode){
+            dumpModeButton.setEnabled(true);
+            dumpModeButton.setText("Stop Data Dump");
+        }
+
     }
     /*************************************************************************/
 

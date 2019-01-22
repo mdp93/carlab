@@ -16,6 +16,7 @@ import edu.umich.carlab.io.CLTripWriter;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.loadable.IApp;
 import edu.umich.carlab.loadable.Middleware;
+import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlab.trips.TripLog;
 import edu.umich.carlab.trips.TripRecord;
 import edu.umich.carlab.utils.NotificationsHelper;
@@ -69,6 +70,8 @@ public class CLService extends Service implements CLDataProvider {
     Map<String, App> runningApps;
     Map<String, Set<String>> dataMultiplexing;
 
+    List<DataMarshal.DataObject> dataDumpStorage;
+
     boolean currentlyStarting = false;
 
     public CLService() {
@@ -105,6 +108,8 @@ public class CLService extends Service implements CLDataProvider {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
+
         if (intent.getAction().equals(Constants.MASTER_SWITCH_ON)) {
             // Check if we're already running. If we are, then unload the running app and then start this
             if (isCarLabRunning()) {
@@ -123,15 +128,33 @@ public class CLService extends Service implements CLDataProvider {
 
             Log.e(TAG, "Service on start cmd: " + startTimestamp);
             NotificationsHelper.setNotificationForeground(this, NotificationsHelper.Notifications.COLLECTING_DATA);
-            currentTrip = tripLog.startTrip(tripOffset);
-            clTripWriter = new CLTripWriter(this, currentTrip);
 
-            Constants.tripid = currentTrip.getID().toString();
+
+            if (!dumpMode) {
+                currentTrip = tripLog.startTrip(tripOffset);
+                clTripWriter = new CLTripWriter(this, currentTrip);
+                Constants.tripid = currentTrip.getID().toString();
+            } else {
+                Constants.tripid = "DUMP MODE";
+            }
             startupSequence();
-            Toast.makeText(this, "CarLab starting data collection. T=" + currentTrip.getID(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "CarLab starting data collection. T=" + Constants.tripid, Toast.LENGTH_SHORT).show();
             return Service.START_NOT_STICKY;
         } else if (intent.getAction().equals(Constants.MASTER_SWITCH_OFF)) {
-            Toast.makeText(this, "Turning off CarLab data collection.", Toast.LENGTH_SHORT).show();
+            if (dumpMode) {
+                Toast.makeText(
+                        this,
+                        String.format(
+                                Locale.getDefault(),
+                                "Turning off data dump. We collected %d total data points",
+                                dataDumpStorage.size()),
+                        Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(
+                        this,
+                        "Turning off CarLab data collection.",
+                        Toast.LENGTH_SHORT).show();
+            }
             shutdownSequence();
             // Stop this service
             stopForeground(true);
@@ -191,6 +214,7 @@ return currentlyStarting;
 
     private void shutdownSequence() {
         if (!runningDataCollection) return;
+        final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
 
         runningDataCollection = false;
         Log.e(TAG, "Shutting down CL! Thread ID: " + Thread.currentThread().getId());
@@ -209,13 +233,19 @@ return currentlyStarting;
         if (dataMultiplexing != null)
             dataMultiplexing.clear();
 
-
         dataMultiplexing = null;
         runningApps = null;
 
-        if (clTripWriter != null) {
+        if (clTripWriter != null && !dumpMode) {
             clTripWriter.stopTrip();
-//            Utilities.wakeUpMainActivity(this);
+        }
+
+        // TODO If it is in dump mode, we want to save the in-memory data to a special file
+        // We need to have a special writing tool which ... just pickles this as easily as possible
+        // No need to split or anything at this point since we do that later anyway
+        if (dumpMode) {
+            dataDumpStorage.clear();
+            prefs.edit().putBoolean(Dump_Data_Mode_Key, false).commit();
         }
 
         Intent stoppedIntent = new Intent();
@@ -233,32 +263,43 @@ return currentlyStarting;
     private void startupSequence() {
         runningDataCollection = true;
         currentlyStarting = true;
+
+        // TODO If it is in dump mode, we want to subscribe to all sensors.
+        // It's not a special app or anything.
+        final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
+        if (dumpMode) dataDumpStorage = new ArrayList<>();
+
         Runnable startupTask = new Runnable() {
             @Override
             public void run() {
                 Log.e(TAG, "Starting CL! Thread ID: " + Thread.currentThread().getId());
-
-                runningApps = new HashMap<>();
-                dataMultiplexing = new HashMap<>();
-                clTripWriter.startNewTrip();
-
                 hal = new HardwareAbstractionLayer(CLService.this);
-                bringAppsToLife();
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                }
-                Log.v(TAG, "Just returned from bringing apps to life");
-                registerAllSensors();
 
-                Log.v(TAG, "Finished startup sequence. We are multiplexing these keys: ");
-                for (Map.Entry<String, Set<String>> appEntry : dataMultiplexing.entrySet()) {
-                    Log.v(TAG, "Key: " + appEntry.getKey());
-                    for (String appName : appEntry.getValue()) {
-                        Log.v(TAG, "\t" + appName);
+                if (dumpMode) {
+                    for (String sensor : PhoneSensors.listAllSensors())
+                        hal.turnOnSensor(PhoneSensors.DEVICE, sensor);
+                } else {
+
+                    runningApps = new HashMap<>();
+                    dataMultiplexing = new HashMap<>();
+                    clTripWriter.startNewTrip();
+
+                    bringAppsToLife();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                    }
+                    Log.v(TAG, "Just returned from bringing apps to life");
+                    registerAllSensors();
+
+                    Log.v(TAG, "Finished startup sequence. We are multiplexing these keys: ");
+                    for (Map.Entry<String, Set<String>> appEntry : dataMultiplexing.entrySet()) {
+                        Log.v(TAG, "Key: " + appEntry.getKey());
+                        for (String appName : appEntry.getValue()) {
+                            Log.v(TAG, "\t" + appName);
+                        }
                     }
                 }
-
 
                 // We can enable master switch now
                 Intent doneIntent = new Intent();
@@ -348,6 +389,14 @@ return currentlyStarting;
      * colors.
      */
     public synchronized void newData(DataMarshal.DataObject dataObject) {
+        // TODO If it is in dump mode, we want to save the incoming data to memory, assuming it's big enough
+        // No real reason to go through all multiplexing business.
+        final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
+        if (dumpMode) {
+            dataDumpStorage.add(dataObject);
+            return;
+        }
+
         if (dataObject == null) return;
         if (dataMultiplexing == null) return;
         if (prefs.getInt(
