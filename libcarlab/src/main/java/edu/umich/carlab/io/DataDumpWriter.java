@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.clog.CLog;
 import edu.umich.carlab.trips.TripRecord;
@@ -23,9 +24,11 @@ public class DataDumpWriter {
     private String filename;
     private File saveFile;
     private SharedPreferences prefs;
+    Context context;
 
     public DataDumpWriter(Context context) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US);
+        this.context = context;
         filename = dateFormatter.format(Calendar.getInstance().getTime()) + ".obj";
         saveFile = new File(DataDumpWriter.GetDumpsDir(context), filename);
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -45,6 +48,7 @@ public class DataDumpWriter {
             oos.close();
             fos.close();
             Log.v(TAG, "Saved data dump");
+            Toast.makeText(context, "Saved file to " + saveFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Log.e(TAG, "Failed to write file");
         }

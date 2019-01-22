@@ -208,9 +208,6 @@ public class ExperimentBaseActivity extends AppCompatActivity
                                                 getApplicationContext(),
                                                 String.format("Showing this file: %s", dumpFiles[i]),
                                                 Toast.LENGTH_SHORT).show();
-
-                                        DataDumpWriter dataDumpWriter = new DataDumpWriter(getApplicationContext());
-                                        List<DataMarshal.DataObject> traceData = dataDumpWriter.readData(dumpFiles[i]);
                                         prefs.edit().putString(Load_From_Trace_Key, dumpFiles[i].toString()).commit();
                                     }
 

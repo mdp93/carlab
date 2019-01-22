@@ -156,5 +156,8 @@ public class CLTripWriter {
         return filename;
     }
 
+    public TripRecord getCurrentTripRecord() {
+        return tripRecord;
+    }
 
 }

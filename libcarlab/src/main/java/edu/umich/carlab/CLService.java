@@ -11,12 +11,14 @@ import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
 import edu.umich.carlab.hal.HardwareAbstractionLayer;
+import edu.umich.carlab.hal.TraceReplayer;
 import edu.umich.carlab.io.AppLoader;
 import edu.umich.carlab.io.CLTripWriter;
 import edu.umich.carlab.io.DataDumpWriter;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.loadable.IApp;
 import edu.umich.carlab.loadable.Middleware;
+import edu.umich.carlab.sensors.OpenXcSensors;
 import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlab.trips.TripLog;
 import edu.umich.carlab.trips.TripRecord;
@@ -72,6 +74,7 @@ public class CLService extends Service implements CLDataProvider {
     Map<String, Set<String>> dataMultiplexing;
 
     List<DataMarshal.DataObject> dataDumpStorage;
+    TraceReplayer replayer;
 
     boolean currentlyStarting = false;
 
@@ -129,7 +132,6 @@ public class CLService extends Service implements CLDataProvider {
 
             Log.e(TAG, "Service on start cmd: " + startTimestamp);
             NotificationsHelper.setNotificationForeground(this, NotificationsHelper.Notifications.COLLECTING_DATA);
-
 
             if (!dumpMode) {
                 currentTrip = tripLog.startTrip(tripOffset);
@@ -242,9 +244,6 @@ return currentlyStarting;
             clTripWriter.stopTrip();
         }
 
-        // TODO If it is in dump mode, we want to save the in-memory data to a special file
-        // We need to have a special writing tool which ... just pickles this as easily as possible
-        // No need to split or anything at this point since we do that later anyway
         if (dumpMode) {
             DataDumpWriter dumpWriter = new DataDumpWriter(this);
             dumpWriter.dumpData(dataDumpStorage);
@@ -268,8 +267,6 @@ return currentlyStarting;
         runningDataCollection = true;
         currentlyStarting = true;
 
-        // TODO If it is in dump mode, we want to subscribe to all sensors.
-        // It's not a special app or anything.
         final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
         if (dumpMode) dataDumpStorage = new ArrayList<>();
 
@@ -282,8 +279,10 @@ return currentlyStarting;
                 if (dumpMode) {
                     for (String sensor : PhoneSensors.listAllSensors())
                         hal.turnOnSensor(PhoneSensors.DEVICE, sensor);
-                } else {
 
+                    for (String sensor : OpenXcSensors.listAllSensors())
+                        hal.turnOnSensor(OpenXcSensors.DEVICE, sensor);
+                } else {
                     runningApps = new HashMap<>();
                     dataMultiplexing = new HashMap<>();
                     clTripWriter.startNewTrip();
@@ -294,6 +293,7 @@ return currentlyStarting;
                     } catch (Exception e) {
                     }
                     Log.v(TAG, "Just returned from bringing apps to life");
+
                     registerAllSensors();
 
                     Log.v(TAG, "Finished startup sequence. We are multiplexing these keys: ");
@@ -324,6 +324,7 @@ return currentlyStarting;
      */
     private void registerAllSensors() {
         String device, sensor, multiplexKey;
+        final String replayTraceFile = prefs.getString(Load_From_Trace_Key, null);
 
         for (Map.Entry<String, App> appEntry : runningApps.entrySet()) {
             List<Pair<String, String>> sensors = appEntry.getValue().getSensors();
@@ -341,7 +342,16 @@ return currentlyStarting;
                     Thread.sleep(250);
                 } catch (Exception e) {
                 }
-                hal.turnOnSensor(device, sensor);
+
+                if (replayTraceFile != null) {
+                    // This means we will read from the trace file instead
+                    replayer = new TraceReplayer(this, replayTraceFile, clTripWriter.getCurrentTripRecord().getID());
+                    Thread replayerThread = new Thread(replayer);
+                    replayerThread.setName("Replayer Thread");
+                    replayerThread.start();
+                } else {
+                    hal.turnOnSensor(device, sensor);
+                }
             }
         }
     }
@@ -393,8 +403,6 @@ return currentlyStarting;
      * colors.
      */
     public synchronized void newData(DataMarshal.DataObject dataObject) {
-        // TODO If it is in dump mode, we want to save the incoming data to memory, assuming it's big enough
-        // No real reason to go through all multiplexing business.
         final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
         if (dumpMode) {
             dataDumpStorage.add(dataObject);
@@ -413,7 +421,7 @@ return currentlyStarting;
         Intent statusIntent;
         long currTime = System.currentTimeMillis();
 
-        if (dataMultiplexing.containsKey(multiplexKey)) {
+        if (dataMultiplexing != null && dataMultiplexing.containsKey(multiplexKey)) {
             dataObject.uid = Constants.UID;
             dataObject.tripid = Constants.tripid;
 
