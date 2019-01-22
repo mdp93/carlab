@@ -8,9 +8,7 @@ import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.clog.CLog;
 import edu.umich.carlab.trips.TripRecord;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -50,5 +48,22 @@ public class DataDumpWriter {
         } catch (Exception e) {
             Log.e(TAG, "Failed to write file");
         }
+    }
+
+    public List<DataMarshal.DataObject> readData(File ifile) {
+        List<DataMarshal.DataObject> returnData = null;
+
+        try {
+            FileInputStream fis = new FileInputStream(ifile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            returnData = (List<DataMarshal.DataObject>)ois.readObject();
+            ois.close();
+            fis.close();
+            Log.v(TAG, "Loaded data");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to write file");
+        }
+
+        return returnData;
     }
 }

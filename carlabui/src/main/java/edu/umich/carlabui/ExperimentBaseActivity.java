@@ -18,6 +18,7 @@ import edu.umich.carlab.CLService;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.TriggerSession;
 import edu.umich.carlab.io.AppLoader;
+import edu.umich.carlab.io.DataDumpWriter;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.net.CheckUpdate;
 import edu.umich.carlab.recurring.UploadFiles;
@@ -171,6 +172,58 @@ public class ExperimentBaseActivity extends AppCompatActivity
         }
     };
 
+    List<CharSequence> getFilenames (File[] files) {
+        List<CharSequence> filenames = new ArrayList<>();
+        for (File ifile : files) {
+            filenames.add(ifile.getName());
+        }
+        return filenames;
+    }
+
+    View.OnClickListener selectTraceFileCallback = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            // Show the dialog box to select trace file
+
+            File dumpsDir = DataDumpWriter.GetDumpsDir(ExperimentBaseActivity.this);
+            final File[] dumpFiles = dumpsDir.listFiles();
+            List<CharSequence> filenames = getFilenames(dumpFiles);
+            filenames.add("None");
+
+            // If they choose any of the dump files, set that value.
+            // Otherwise set it to null.
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(ExperimentBaseActivity.this);
+            dialogBuilder
+                    .setTitle("Select Trace File")
+                    .setItems(
+                            filenames.toArray(new CharSequence[]{}),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    if (i == dumpFiles.length) {
+                                        // This is the undefined one
+                                        prefs.edit().putString(Load_From_Trace_Key, null).commit();
+                                    } else {
+                                        Toast.makeText(
+                                                getApplicationContext(),
+                                                String.format("Showing this file: %s", dumpFiles[i]),
+                                                Toast.LENGTH_SHORT).show();
+
+                                        DataDumpWriter dataDumpWriter = new DataDumpWriter(getApplicationContext());
+                                        List<DataMarshal.DataObject> traceData = dataDumpWriter.readData(dumpFiles[i]);
+                                        prefs.edit().putString(Load_From_Trace_Key, dumpFiles[i].toString()).commit();
+                                    }
+
+                                    updateButtons();
+                                }
+
+
+                            });
+            AlertDialog dialog = dialogBuilder.create();
+            dialog.show();
+        }
+    };
+
     View.OnClickListener dumpDataCallback = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -304,6 +357,9 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
         dumpModeButton = (Button) findViewById(R.id.saveCurrentSessionButton);
         dumpModeButton.setOnClickListener(dumpDataCallback);
+
+        runFromTrace = (Button)findViewById(R.id.loadFromTrace);
+        runFromTrace.setOnClickListener(selectTraceFileCallback);
     }
 
     // https://stackoverflow.com/questions/4932462/animate-the-transition-between-fragments
@@ -322,8 +378,13 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
 
     void updateButtons() {
-        TriggerSession.SessionState sessionState = TriggerSession.SessionState.values()[prefs.getInt(edu.umich.carlab.Constants.Session_State_Key, 1)];
+        TriggerSession.SessionState sessionState = TriggerSession
+                .SessionState
+                .values()[prefs.getInt(edu.umich.carlab.Constants.Session_State_Key, 1)];
+
         Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
+
+        String traceFile = prefs.getString(Load_From_Trace_Key, null);
 
         // Update the pause button
         if (sessionState == TriggerSession.SessionState.OFF) {
@@ -368,6 +429,20 @@ public class ExperimentBaseActivity extends AppCompatActivity
             dumpModeButton.setText("Stop Data Dump");
         }
 
+        // Update the trace button
+        if (carlabService == null || carlabService.carlabCurrentlyStarting()) {
+            runFromTrace.setEnabled(false);
+            runFromTrace.setText("Starting");
+        } else if (carlabService.isCarLabRunning()) {
+            runFromTrace.setEnabled(false);
+        } else {
+            runFromTrace.setEnabled(true);
+            if (traceFile == null) {
+                runFromTrace.setText("Load Trace");
+            } else {
+                runFromTrace.setText("Change Trace File");
+            }
+        }
     }
     /*************************************************************************/
 
