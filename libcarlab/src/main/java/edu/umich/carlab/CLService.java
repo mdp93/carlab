@@ -13,6 +13,7 @@ import android.widget.Toast;
 import edu.umich.carlab.hal.HardwareAbstractionLayer;
 import edu.umich.carlab.io.AppLoader;
 import edu.umich.carlab.io.CLTripWriter;
+import edu.umich.carlab.io.DataDumpWriter;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.loadable.IApp;
 import edu.umich.carlab.loadable.Middleware;
@@ -142,13 +143,14 @@ public class CLService extends Service implements CLDataProvider {
             return Service.START_NOT_STICKY;
         } else if (intent.getAction().equals(Constants.MASTER_SWITCH_OFF)) {
             if (dumpMode) {
-                Toast.makeText(
-                        this,
-                        String.format(
-                                Locale.getDefault(),
-                                "Turning off data dump. We collected %d total data points",
-                                dataDumpStorage.size()),
-                        Toast.LENGTH_LONG).show();
+                if (dataDumpStorage != null)
+                    Toast.makeText(
+                            this,
+                            String.format(
+                                    Locale.getDefault(),
+                                    "Turning off data dump. We collected %d total data points",
+                                    dataDumpStorage.size()),
+                            Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(
                         this,
@@ -244,6 +246,8 @@ return currentlyStarting;
         // We need to have a special writing tool which ... just pickles this as easily as possible
         // No need to split or anything at this point since we do that later anyway
         if (dumpMode) {
+            DataDumpWriter dumpWriter = new DataDumpWriter(this);
+            dumpWriter.dumpData(dataDumpStorage);
             dataDumpStorage.clear();
             prefs.edit().putBoolean(Dump_Data_Mode_Key, false).commit();
         }

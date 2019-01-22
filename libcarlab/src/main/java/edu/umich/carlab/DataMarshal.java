@@ -4,6 +4,8 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
+
 /**
  * A class to make sure we create the JSON string the proper way
  */
@@ -42,7 +44,7 @@ public class DataMarshal {
         ERROR, STATUS, DATA;
     }
 
-    public static class DataObject {
+    public static class DataObject implements Serializable {
         public long time;
         public String device;
         public String sensor;
