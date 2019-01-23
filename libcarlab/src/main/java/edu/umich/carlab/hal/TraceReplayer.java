@@ -62,7 +62,8 @@ public class TraceReplayer implements Runnable {
         for (int i = 0; i < traceData.size(); i++) {
             dataObject = traceData.get(i);
             previousDataTime = dataObject.time;
-            dataObject.time -= dataOffsetTime + newStartTime;
+            dataObject.time -= dataOffsetTime;
+            dataObject.time += newStartTime;
             dataObject.tripid = tripID;
             dataObject.uid = uid;
             carlabService.newData(dataObject);
