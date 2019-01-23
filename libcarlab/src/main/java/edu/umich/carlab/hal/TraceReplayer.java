@@ -3,6 +3,8 @@ package edu.umich.carlab.hal;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
+import android.widget.Toast;
 import edu.umich.carlab.CLService;
 import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
@@ -14,9 +16,11 @@ import java.util.List;
 
 import static edu.umich.carlab.Constants.Load_From_Trace_Key;
 import static edu.umich.carlab.Constants.ManualChoiceKey;
+import static edu.umich.carlab.Constants.UID_key;
 
 public class TraceReplayer implements Runnable {
     final int INITIAL_WAIT_TIME = 3000;
+    final String TAG = "TraceReplayer";
 
     CLService carlabService;
     File ifile;
@@ -39,8 +43,17 @@ public class TraceReplayer implements Runnable {
             Thread.sleep(INITIAL_WAIT_TIME);
         } catch (Exception e) {}
 
+        Long startTime = System.currentTimeMillis();
         Long newStartTime = System.currentTimeMillis();
         Long dataOffsetTime = traceData.get(0).time;
+        Long sleepTime = 0L;
+        String uid = prefs.getString(UID_key, null);
+        if (uid == null) {
+            String errorMessage = "UID is null. Something went wrong with replay";
+            Toast.makeText(carlabService, errorMessage, Toast.LENGTH_SHORT).show();
+            Log.e(TAG, errorMessage);
+            return;
+        }
 
         DataMarshal.DataObject dataObject;
 
@@ -51,11 +64,14 @@ public class TraceReplayer implements Runnable {
             previousDataTime = dataObject.time;
             dataObject.time -= dataOffsetTime + newStartTime;
             dataObject.tripid = tripID;
+            dataObject.uid = uid;
             carlabService.newData(dataObject);
 
             if (i < traceData.size() - 1) {
                 try {
-                    Thread.sleep(traceData.get(i+1).time - previousDataTime);
+                    sleepTime = traceData.get(i+1).time - previousDataTime;
+                    if (sleepTime < 0);
+                    Thread.sleep(sleepTime);
                 } catch (Exception e) {}
             }
         }

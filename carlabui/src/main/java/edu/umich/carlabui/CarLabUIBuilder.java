@@ -149,7 +149,6 @@ public class CarLabUIBuilder {
 
         // Hard code UID
         prefs.edit().putString(Constants.UID_key, personID).apply();
-        Constants.UID = personID;
 
         // Hard code the Bluetooth MAC
         prefs.edit().putString(Constants.SELECTED_BLUETOOTH_KEY, devAddr).apply();

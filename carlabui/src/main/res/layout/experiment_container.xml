@@ -25,17 +25,21 @@
                 android:layout_height="@dimen/controlButtonHeight"
         >
 
+
+
             <Button
-                    android:text="Info"
+                    android:text="Load Trace"
                     android:layout_width="@dimen/controlButtonWidth"
+                    android:textSize="@dimen/controlButtonTextSize"
                     android:layout_height="@dimen/controlButtonHeight"
-                    android:id="@+id/showInfo"
+                    android:id="@+id/loadFromTrace"
             />
 
             <Button
                     android:text="Middleware"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:textSize="@dimen/controlButtonTextSize"
                     android:id="@+id/showMiddleware"
             />
 
@@ -44,53 +48,61 @@
                     android:text="Turn On"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:textSize="@dimen/controlButtonTextSize"
                     android:id="@+id/toggleCarlab"
             />
-
+            <Button
+                    android:text="Upload Trips"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+                    android:textSize="@dimen/controlButtonTextSize"
+                    android:id="@+id/uploadTrips"
+            />
             <Button
                     android:text="Pause"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:textSize="@dimen/controlButtonTextSize"
                     android:id="@+id/pauseCarlab"
             />
 
+            <Button
+                    android:text="Info"
+                    android:layout_width="@dimen/controlButtonWidth"
+                    android:layout_height="@dimen/controlButtonHeight"
+                    android:textSize="@dimen/controlButtonTextSize"
+                    android:id="@+id/showInfo"
+            />
 
             <Button
                     android:text="Save Trace"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:textSize="@dimen/controlButtonTextSize"
                     android:id="@+id/saveCurrentSessionButton"
             />
 
 
-            <Button
-                    android:text="Load Trace"
-                    android:layout_width="@dimen/controlButtonWidth"
-                    android:layout_height="@dimen/controlButtonHeight"
-                    android:id="@+id/loadFromTrace"
-            />
+
 
 
             <Button
                     android:text="Download Update"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:textSize="@dimen/controlButtonTextSize"
                     android:id="@+id/downloadUpdate"
             />
 
 
-            <Button
-                    android:text="Upload Trips"
-                    android:layout_width="@dimen/controlButtonWidth"
-                    android:layout_height="@dimen/controlButtonHeight"
-                    android:id="@+id/uploadTrips"
-            />
+
 
 
             <Button
                     android:text="Dep. Map"
                     android:layout_width="@dimen/controlButtonWidth"
                     android:layout_height="@dimen/controlButtonHeight"
+                    android:textSize="@dimen/controlButtonTextSize"
                     android:id="@+id/showDependencyMap"
             />
 

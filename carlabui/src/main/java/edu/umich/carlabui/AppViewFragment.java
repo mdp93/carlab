@@ -86,16 +86,17 @@ public class AppViewFragment extends Fragment {
         return layout;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        getContext().bindService(
+                new Intent(
+                        getContext(),
+                        CLService.class),
+                mConnection,
+                Context.BIND_AUTO_CREATE);
+
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
@@ -107,12 +108,10 @@ public class AppViewFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        getContext().bindService(
-                new Intent(
-                        getContext(),
-                        CLService.class),
-                mConnection,
-                Context.BIND_AUTO_CREATE);
+
+        // FIXME For now we always set this to false and redraw the layout.
+        drawnLayout = false;
+        drawViewIfNeeded();
     }
 
     void drawViewIfNeeded() {
@@ -141,21 +140,17 @@ public class AppViewFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mBound) {
-            getContext().unbindService(mConnection);
-            drawnLayout = false;
-            mBound = false;
-        }
-    }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        drawnLayout = false;
+
+        if (mBound) {
+            getContext().unbindService(mConnection);
+            drawnLayout = false;
+            mBound = false;
+        }
     }
 
     /************************* CarLab service binding ************************/

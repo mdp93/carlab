@@ -73,6 +73,8 @@ public class CLService extends Service implements CLDataProvider {
     Map<String, App> runningApps;
     Map<String, Set<String>> dataMultiplexing;
 
+    String uid, tripid;
+
     List<DataMarshal.DataObject> dataDumpStorage;
     TraceReplayer replayer;
 
@@ -136,12 +138,12 @@ public class CLService extends Service implements CLDataProvider {
             if (!dumpMode) {
                 currentTrip = tripLog.startTrip(tripOffset);
                 clTripWriter = new CLTripWriter(this, currentTrip);
-                Constants.tripid = currentTrip.getID().toString();
+                tripid = currentTrip.getID().toString();
             } else {
-                Constants.tripid = "DUMP MODE";
+                tripid = "DUMP MODE";
             }
             startupSequence();
-            Toast.makeText(this, "CarLab starting data collection. T=" + Constants.tripid, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "CarLab starting data collection. T=" + tripid, Toast.LENGTH_SHORT).show();
             return Service.START_NOT_STICKY;
         } else if (intent.getAction().equals(Constants.MASTER_SWITCH_OFF)) {
             if (dumpMode) {
@@ -266,6 +268,10 @@ return currentlyStarting;
     private void startupSequence() {
         runningDataCollection = true;
         currentlyStarting = true;
+        uid = prefs.getString(UID_key, null);
+        if (uid == null) {
+            Log.e(TAG, "Problem setting the UID in carlab start");
+        }
 
         final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
         if (dumpMode) dataDumpStorage = new ArrayList<>();
@@ -425,8 +431,8 @@ return currentlyStarting;
         long currTime = System.currentTimeMillis();
 
         if (dataMultiplexing != null && dataMultiplexing.containsKey(multiplexKey)) {
-            dataObject.uid = Constants.UID;
-            dataObject.tripid = Constants.tripid;
+            dataObject.uid = uid;
+            dataObject.tripid = tripid;
 
             Set<String> classNames = dataMultiplexing.get(multiplexKey);
             for (String appClassName : classNames) {

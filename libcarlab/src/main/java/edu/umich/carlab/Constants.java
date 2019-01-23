@@ -12,11 +12,6 @@ public class Constants {
 
     public static final int TAG_CODE_PERMISSION_LOCATION = 777;
 
-    // TODO This needs to be read from some place else. Maybe from shared preferences? Where is this stored?
-    // This was most most likely solved already. Not sure what the solution was though - 10/12/18
-    public static String UID = "";
-    public static String tripid = "";
-
 
     public final static int GPS_INTERVAL = 500;
 

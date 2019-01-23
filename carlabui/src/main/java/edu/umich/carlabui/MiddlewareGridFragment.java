@@ -48,6 +48,7 @@ public class MiddlewareGridFragment extends Fragment {
     boolean mBound = false;
     CLService carlabService;
 
+    Map<String, AppViewFragment> appViewFragments;
     List<AppsAdapter.AppModel> appModels;
     Map<String, Integer> appModelIndexMap;
     AppsAdapter appsAdapter;
@@ -84,7 +85,13 @@ public class MiddlewareGridFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
+        appViewFragments = new HashMap<>();
+    }
 
+    Fragment getFragmentFor(String classname) {
+        if (!appViewFragments.containsKey(classname))
+            appViewFragments.put(classname, AppViewFragment.newInstance(classname));
+        return appViewFragments.get(classname);
     }
 
 
@@ -96,7 +103,7 @@ public class MiddlewareGridFragment extends Fragment {
         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
             FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
             transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            transaction.replace(R.id.main_wrapper, AppViewFragment.newInstance(appModels.get(position).className));
+            transaction.replace(R.id.main_wrapper, getFragmentFor(appModels.get(position).className));
             transaction.addToBackStack(appModels.get(position).className);
             transaction.commit();
         }

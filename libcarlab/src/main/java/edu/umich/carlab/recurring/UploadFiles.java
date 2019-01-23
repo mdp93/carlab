@@ -51,6 +51,11 @@ public class UploadFiles extends BroadcastReceiver {
         SharedPreferences sharedPrefs = getDefaultSharedPreferences(context);
         String UID = sharedPrefs.getString(Constants.UID_key, null);
 
+        if (UID == null) {
+            Log.e(TAG, "Upload UID is null. Trying again later.");
+            return;
+        }
+
         RequestQueue queue = Volley.newRequestQueue(context);
 
         // Get the list of currently uploaded receipts. Only upload ones that weren't succesfully
