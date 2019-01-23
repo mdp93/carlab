@@ -1,14 +1,18 @@
 package edu.umich.carlabui;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.*;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,10 +29,7 @@ import edu.umich.carlab.recurring.UploadFiles;
 import edu.umich.carlab.utils.Utilities;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static edu.umich.carlab.Constants.*;
 import static edu.umich.carlabui.AppsAdapter.AppState.ACTIVE;
@@ -186,7 +187,19 @@ public class ExperimentBaseActivity extends AppCompatActivity
             // Show the dialog box to select trace file
 
             File dumpsDir = DataDumpWriter.GetDumpsDir(ExperimentBaseActivity.this);
-            final File[] dumpFiles = dumpsDir.listFiles();
+            Comparator<File> sortByLastModified = new Comparator<File>() {
+                @Override
+                public int compare(File f1, File f2) {
+                    if (f1.lastModified() == f2.lastModified()) return 0;
+                    if (f1.lastModified() < f2.lastModified()) return -1;
+                    return 1;
+                }
+            };
+
+            List<File> allFiles = Arrays.asList(dumpsDir.listFiles());
+            Collections.sort(allFiles, sortByLastModified);
+            final File[] dumpFiles = allFiles.toArray(new File[]{});
+
             List<CharSequence> filenames = getFilenames(dumpFiles);
             filenames.add("None");
 
@@ -247,6 +260,38 @@ public class ExperimentBaseActivity extends AppCompatActivity
         }
     };
 
+    /**
+     * Function to get permission for location
+     * Ideally this happens in PhoneSensors where the GPS sensor is turned on
+     * But, since we need an Activity handle, this might be the most reasonable place to do it for now
+     * https://developer.android.com/training/permissions/requesting.html#java
+     */
+    void checkAndRequestLocPermission() {
+        // Here, thisActivity is the current activity
+        if ((ContextCompat.checkSelfPermission(ExperimentBaseActivity.this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED)
+
+                ||
+
+                (ContextCompat.checkSelfPermission(ExperimentBaseActivity.this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED)) {
+
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(ExperimentBaseActivity.this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(ExperimentBaseActivity.this,
+                        new String[]{
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                        },
+                        edu.umich.carlab.Constants.TAG_CODE_PERMISSION_LOCATION);
+            }
+        }
+    }
+
+
     /************************* CarLab service binding ************************/
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -274,7 +319,6 @@ public class ExperimentBaseActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         requestWindowFeature(Window.FEATURE_NO_TITLE);//will hide the title
         getSupportActionBar().hide();
 
@@ -288,6 +332,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
         wireUI();
         loadAndInitializeInfo();
         updateButtons();
+        checkAndRequestLocPermission();
 
         manualOnOffToggle.setEnabled(false);
         Utilities.scheduleOnce(this, ManualTrigger.class, 0);
