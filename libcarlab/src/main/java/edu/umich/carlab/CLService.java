@@ -326,6 +326,15 @@ return currentlyStarting;
         String device, sensor, multiplexKey;
         final String replayTraceFile = prefs.getString(Load_From_Trace_Key, null);
 
+
+        if (replayTraceFile != null) {
+            // This means we will read from the trace file instead
+            replayer = new TraceReplayer(this, replayTraceFile, clTripWriter.getCurrentTripRecord().getID());
+            Thread replayerThread = new Thread(replayer);
+            replayerThread.setName("Replayer Thread");
+            replayerThread.start();
+        }
+
         for (Map.Entry<String, App> appEntry : runningApps.entrySet()) {
             List<Pair<String, String>> sensors = appEntry.getValue().getSensors();
             for (Pair<String, String> devSensor : sensors) {
@@ -343,13 +352,7 @@ return currentlyStarting;
                 } catch (Exception e) {
                 }
 
-                if (replayTraceFile != null) {
-                    // This means we will read from the trace file instead
-                    replayer = new TraceReplayer(this, replayTraceFile, clTripWriter.getCurrentTripRecord().getID());
-                    Thread replayerThread = new Thread(replayer);
-                    replayerThread.setName("Replayer Thread");
-                    replayerThread.start();
-                } else {
+                if (replayTraceFile == null) {
                     hal.turnOnSensor(device, sensor);
                 }
             }

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,7 +53,7 @@ public class MiddlewareGridFragment extends Fragment {
     AppsAdapter appsAdapter;
 
     private OnFragmentInteractionListener mListener;
-
+    final String TAG = "middleware_grid";
     public MiddlewareGridFragment() {
         // Required empty public constructor
     }
@@ -215,6 +216,7 @@ public class MiddlewareGridFragment extends Fragment {
             }
 
             appsAdapter.notifyDataSetChanged();
+            Log.v(TAG, "Updating state color");
         }
     };
 

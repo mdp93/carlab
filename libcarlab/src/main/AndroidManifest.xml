@@ -49,6 +49,8 @@
         <receiver android:name="edu.umich.carlab.clog.UploadLog" />
         <receiver android:name="edu.umich.carlab.net.GetLatestTrip" />
         <receiver android:name="edu.umich.carlab.net.CheckUpdate" />
+        <receiver android:name="edu.umich.carlab.ManualTrigger" />
+
 
         <!-- META DATA FOR LIBRARIES AND KEYS -->
         <meta-data

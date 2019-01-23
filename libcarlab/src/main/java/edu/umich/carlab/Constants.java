@@ -53,6 +53,9 @@ public class Constants {
     public static final int wakeupCheckPeriod = 30*1000; //10*1000;
     public static final int sleepCheckPeriod = 5*1000; //5*1000;
 
+    public static final String ManualChoiceKey = "Manual Button State";
+;
+
     public static final String Static_Apps = "static apps";
     public static final String Middlewares = "middlewares";
 

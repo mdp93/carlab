@@ -1,16 +1,19 @@
 package edu.umich.carlab.hal;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import edu.umich.carlab.CLService;
 import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
+import edu.umich.carlab.ManualTrigger;
 import edu.umich.carlab.io.DataDumpWriter;
 
 import java.io.File;
 import java.util.List;
 
 import static edu.umich.carlab.Constants.Load_From_Trace_Key;
+import static edu.umich.carlab.Constants.ManualChoiceKey;
 
 public class TraceReplayer implements Runnable {
     final int INITIAL_WAIT_TIME = 3000;
@@ -57,6 +60,13 @@ public class TraceReplayer implements Runnable {
             }
         }
 
-        prefs.edit().putString(Load_From_Trace_Key, null).commit();
+        prefs
+                .edit()
+                .putString(Load_From_Trace_Key, null)
+                .putBoolean(ManualChoiceKey, false).commit();
+
+        carlabService.sendBroadcast(new Intent(
+                carlabService,
+                ManualTrigger.class));
     }
 }

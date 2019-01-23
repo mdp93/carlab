@@ -1,7 +1,6 @@
 package edu.umich.carlabui;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.*;
 import android.content.pm.PackageManager;
@@ -14,16 +13,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.*;
 import edu.umich.carlab.CLService;
-import edu.umich.carlab.DataMarshal;
+import edu.umich.carlab.ManualTrigger;
 import edu.umich.carlab.TriggerSession;
-import edu.umich.carlab.io.AppLoader;
 import edu.umich.carlab.io.DataDumpWriter;
-import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.net.CheckUpdate;
 import edu.umich.carlab.recurring.UploadFiles;
 import edu.umich.carlab.utils.Utilities;
@@ -32,8 +28,6 @@ import java.io.File;
 import java.util.*;
 
 import static edu.umich.carlab.Constants.*;
-import static edu.umich.carlabui.AppsAdapter.AppState.ACTIVE;
-import static edu.umich.carlabui.Constants.ManualChoiceKey;
 
 public class ExperimentBaseActivity extends AppCompatActivity
         implements InfoViewFragment.OnFragmentInteractionListener,
@@ -226,8 +220,6 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
                                     updateButtons();
                                 }
-
-
                             });
             AlertDialog dialog = dialogBuilder.create();
             dialog.show();

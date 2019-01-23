@@ -1,8 +1,7 @@
-package edu.umich.carlabui;
+package edu.umich.carlab;
 
-import edu.umich.carlab.TriggerSession;
 import edu.umich.carlab.utils.Utilities;
-import edu.umich.carlabui.Constants;
+
 
 public class ManualTrigger extends TriggerSession {
     @Override
