@@ -71,8 +71,8 @@ public class TraceReplayer implements Runnable {
             if (i < traceData.size() - 1) {
                 try {
                     sleepTime = traceData.get(i+1).time - previousDataTime;
-                    if (sleepTime < 0);
-                    Thread.sleep(sleepTime);
+                    if (sleepTime > 0)
+                        Thread.sleep(sleepTime);
                 } catch (Exception e) {}
             }
         }
