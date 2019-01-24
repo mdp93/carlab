@@ -80,6 +80,11 @@ public class Constants {
     public static final String STATUS_CHANGED = "StatusChanged";
     public static final String BT_FAILED = "bluetooth failed";
 
+    public static final String REPLAY_STATUS = "ReplayStatus";
+    public static final String DUMP_COLLECTED_STATUS = "DumpCollectedStatus";
+    public static final String REPLAY_PERCENTAGE = "ReplayPercentage";
+    public static final String DUMP_BYTES = "DumpBytes";
+
 
     public static final String TASKS_APK_NAME = "tasks.apk";
 

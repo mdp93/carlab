@@ -26,6 +26,7 @@ public class DataDumpWriter {
     private SharedPreferences prefs;
     Context context;
 
+
     public DataDumpWriter(Context context) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US);
         this.context = context;

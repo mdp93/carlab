@@ -111,12 +111,17 @@ public abstract class App implements IApp {
         outputData(APP, dObject, sensor, new Float[]{value});
     }
 
-    public void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float[] value) {
+    public DataMarshal.DataObject outputData(
+            String APP,
+            DataMarshal.DataObject dObject,
+            String sensor,
+            Float[] value) {
         DataMarshal.DataObject secondaryDataObject = dObject.clone();
         secondaryDataObject.device = APP;
         secondaryDataObject.sensor = sensor;
         secondaryDataObject.value = value;
         cl.newData(secondaryDataObject);
+        return secondaryDataObject;
     }
 
     /********************************

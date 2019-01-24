@@ -14,13 +14,14 @@ import edu.umich.carlab.io.DataDumpWriter;
 import java.io.File;
 import java.util.List;
 
-import static edu.umich.carlab.Constants.Load_From_Trace_Key;
-import static edu.umich.carlab.Constants.ManualChoiceKey;
-import static edu.umich.carlab.Constants.UID_key;
+import static edu.umich.carlab.Constants.*;
 
 public class TraceReplayer implements Runnable {
     final int INITIAL_WAIT_TIME = 3000;
     final String TAG = "TraceReplayer";
+
+    final long broadcastEvery = 500L;
+    long lastBroadcast = 0L;
 
     CLService carlabService;
     File ifile;
@@ -58,6 +59,7 @@ public class TraceReplayer implements Runnable {
         DataMarshal.DataObject dataObject;
 
         long previousDataTime = 0;
+        long currTime = 0;
 
         for (int i = 0; i < traceData.size(); i++) {
             dataObject = traceData.get(i);
@@ -71,9 +73,18 @@ public class TraceReplayer implements Runnable {
             if (i < traceData.size() - 1) {
                 try {
                     sleepTime = traceData.get(i+1).time - previousDataTime;
+                    sleepTime = 1L;
                     if (sleepTime > 0)
                         Thread.sleep(sleepTime);
                 } catch (Exception e) {}
+            }
+
+            currTime = System.currentTimeMillis();
+            if (currTime > lastBroadcast + broadcastEvery) {
+                Intent intent = new Intent(REPLAY_STATUS);
+                intent.putExtra(REPLAY_PERCENTAGE, (double)i / traceData.size());
+                carlabService.sendBroadcast(intent);
+                lastBroadcast = currTime;
             }
         }
 

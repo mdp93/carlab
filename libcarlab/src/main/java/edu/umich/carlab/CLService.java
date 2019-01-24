@@ -75,6 +75,9 @@ public class CLService extends Service implements CLDataProvider {
 
     String uid, tripid;
 
+
+    final long dataDumpBroadcastEvery = 500L;
+    long dataDumpLastBroadcastTime = 0L;
     List<DataMarshal.DataObject> dataDumpStorage;
     TraceReplayer replayer;
 
@@ -413,8 +416,16 @@ return currentlyStarting;
      */
     public synchronized void newData(DataMarshal.DataObject dataObject) {
         final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
+        long currTime = System.currentTimeMillis();
+
         if (dumpMode) {
             dataDumpStorage.add(dataObject);
+            if (currTime > dataDumpLastBroadcastTime + dataDumpBroadcastEvery) {
+                Intent intent = new Intent(DUMP_COLLECTED_STATUS);
+                intent.putExtra(DUMP_BYTES, dataDumpStorage.size());
+                sendBroadcast(intent);
+                dataDumpLastBroadcastTime = currTime;
+            }
             return;
         }
 
@@ -428,7 +439,6 @@ return currentlyStarting;
 
         String multiplexKey = dataObject.device + ":" + dataObject.sensor;
         Intent statusIntent;
-        long currTime = System.currentTimeMillis();
 
         if (dataMultiplexing != null && dataMultiplexing.containsKey(multiplexKey)) {
             dataObject.uid = uid;

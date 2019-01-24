@@ -14,8 +14,12 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import edu.umich.carlab.CLService;
 import edu.umich.carlab.ManualTrigger;
 import edu.umich.carlab.TriggerSession;
@@ -31,8 +35,8 @@ import static edu.umich.carlab.Constants.*;
 
 public class ExperimentBaseActivity extends AppCompatActivity
         implements InfoViewFragment.OnFragmentInteractionListener,
-            MiddlewareGridFragment.OnFragmentInteractionListener,
-            AppViewFragment.OnFragmentInteractionListener {
+        MiddlewareGridFragment.OnFragmentInteractionListener,
+        AppViewFragment.OnFragmentInteractionListener {
     Button showMiddleware,
             manualOnOffToggle,
             pauseCarlab,
@@ -44,9 +48,16 @@ public class ExperimentBaseActivity extends AppCompatActivity
             showDependenyMap;
 
 
+    TextView statusBarTV;
+    FrameLayout statusBarBackground, statusBarBackgroundWrapper;
+
     SharedPreferences prefs;
     CLService carlabService;
     FrameLayout mainWrapper;
+
+    double replayStatusAmount = 0;
+    int dumpStatusAmount = 0;
+
 
     boolean mBound = false;
     InfoViewFragment infoFragment = new InfoViewFragment();
@@ -72,6 +83,22 @@ public class ExperimentBaseActivity extends AppCompatActivity
             updateButtons();
         }
     };
+    BroadcastReceiver replayStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            replayStatusAmount = intent.getDoubleExtra(REPLAY_PERCENTAGE, 0);
+            updateProgressBar();
+        }
+    };
+
+    BroadcastReceiver dumpStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            dumpStatusAmount = intent.getIntExtra(DUMP_BYTES, 0);
+            updateProgressBar();
+        }
+    };
+
     /************************* UI callback functions *************************/
     View.OnClickListener toggleCarlab = new View.OnClickListener() {
         @Override
@@ -163,18 +190,9 @@ public class ExperimentBaseActivity extends AppCompatActivity
     View.OnClickListener loadMiddlewareActivity = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-           replaceFragmentWithAnimation(middlewareGridFragment, "MIDDLEWARE");
+            replaceFragmentWithAnimation(middlewareGridFragment, "MIDDLEWARE");
         }
     };
-
-    List<CharSequence> getFilenames (File[] files) {
-        List<CharSequence> filenames = new ArrayList<>();
-        for (File ifile : files) {
-            filenames.add(ifile.getName());
-        }
-        return filenames;
-    }
-
     View.OnClickListener selectTraceFileCallback = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -225,7 +243,6 @@ public class ExperimentBaseActivity extends AppCompatActivity
             dialog.show();
         }
     };
-
     View.OnClickListener dumpDataCallback = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -237,7 +254,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
                         .putBoolean(Dump_Data_Mode_Key, true)
                         .putBoolean(ManualChoiceKey, true)
                         .commit();
-            // Else we just turn off carlab. Dump mode will be turned off once we're done saving in CL service
+                // Else we just turn off carlab. Dump mode will be turned off once we're done saving in CL service
             else
                 prefs.edit().putBoolean(ManualChoiceKey, false).commit();
 
@@ -251,6 +268,36 @@ public class ExperimentBaseActivity extends AppCompatActivity
                     ManualTrigger.class));
         }
     };
+    /************************* CarLab service binding ************************/
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            CLService.LocalBinder binder = (CLService.LocalBinder) service;
+            carlabService = binder.getService();
+
+            mBound = true;
+            prefs.edit()
+                    .putBoolean(
+                            ManualChoiceKey,
+                            carlabService.isCarLabRunning())
+                    .commit();
+            updateButtons();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            carlabService = null;
+        }
+    };
+
+    List<CharSequence> getFilenames(File[] files) {
+        List<CharSequence> filenames = new ArrayList<>();
+        for (File ifile : files) {
+            filenames.add(ifile.getName());
+        }
+        return filenames;
+    }
 
     /**
      * Function to get permission for location
@@ -283,35 +330,11 @@ public class ExperimentBaseActivity extends AppCompatActivity
         }
     }
 
-
-    /************************* CarLab service binding ************************/
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            CLService.LocalBinder binder = (CLService.LocalBinder) service;
-            carlabService = binder.getService();
-
-            mBound = true;
-            prefs   .edit()
-                    .putBoolean(
-                            ManualChoiceKey,
-                            carlabService.isCarLabRunning())
-                    .commit();
-            updateButtons();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            carlabService = null;
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_NO_TITLE);//will hide the title
+        requestWindowFeature(Window.FEATURE_NO_TITLE); //will hide the title
         getSupportActionBar().hide();
 
         setContentView(R.layout.experiment_container);
@@ -346,6 +369,8 @@ public class ExperimentBaseActivity extends AppCompatActivity
         registerReceiver(clStopped, new IntentFilter(CLSERVICE_STOPPED));
         registerReceiver(updateReceiver, new IntentFilter(STATUS_CHANGED));
         registerReceiver(clStarted, new IntentFilter(DONE_INITIALIZING_CL));
+        registerReceiver(replayStatusReceiver, new IntentFilter(REPLAY_STATUS));
+        registerReceiver(dumpStatusReceiver, new IntentFilter(DUMP_COLLECTED_STATUS));
     }
 
     @Override
@@ -360,12 +385,10 @@ public class ExperimentBaseActivity extends AppCompatActivity
         unregisterReceiver(clStopped);
         unregisterReceiver(updateReceiver);
         unregisterReceiver(clStarted);
+        unregisterReceiver(replayStatusReceiver);
+        unregisterReceiver(dumpStatusReceiver);
     }
 
-    void enableOnOffButton() {
-        if (carlabService == null)
-            manualOnOffToggle.setEnabled(true);
-    }
 
     void wireUI() {
         mainWrapper = findViewById(R.id.main_wrapper);
@@ -376,24 +399,28 @@ public class ExperimentBaseActivity extends AppCompatActivity
         showInfo = findViewById(R.id.showInfo);
         showInfo.setOnClickListener(loadInfoActivity);
 
-        downloadUpdate = (Button) findViewById(R.id.downloadUpdate);
+        downloadUpdate = findViewById(R.id.downloadUpdate);
         downloadUpdate.setOnClickListener(downloadUpdateCallback);
 
-        uploadFiles = (Button) findViewById(R.id.uploadTrips);
+        uploadFiles = findViewById(R.id.uploadTrips);
         uploadFiles.setOnClickListener(uploadFilesCallback);
 
-        manualOnOffToggle = (Button) findViewById(R.id.toggleCarlab);
+        manualOnOffToggle = findViewById(R.id.toggleCarlab);
         manualOnOffToggle.setOnClickListener(toggleCarlab);
         manualOnOffToggle.setEnabled(false);
 
-        pauseCarlab = (Button) findViewById(R.id.pauseCarlab);
+        pauseCarlab = findViewById(R.id.pauseCarlab);
         pauseCarlab.setOnClickListener(togglePauseCarlab);
 
-        dumpModeButton = (Button) findViewById(R.id.saveCurrentSessionButton);
+        dumpModeButton = findViewById(R.id.saveCurrentSessionButton);
         dumpModeButton.setOnClickListener(dumpDataCallback);
 
-        runFromTrace = (Button)findViewById(R.id.loadFromTrace);
+        runFromTrace = findViewById(R.id.loadFromTrace);
         runFromTrace.setOnClickListener(selectTraceFileCallback);
+
+        statusBarTV = findViewById(R.id.status_text);
+        statusBarBackground = findViewById(R.id.status_background_color);
+        statusBarBackgroundWrapper = findViewById(R.id.status_background_color_wrapper);
     }
 
     // https://stackoverflow.com/questions/4932462/animate-the-transition-between-fragments
@@ -404,12 +431,61 @@ public class ExperimentBaseActivity extends AppCompatActivity
         transaction.addToBackStack(tag);
         transaction.commit();
     }
+
     /*************************************************************************/
 
     void loadAndInitializeInfo() {
         replaceFragmentWithAnimation(infoFragment, "TAG");
     }
 
+
+    void setProgressBarDetails(String text, int drawableId, int width) {
+        statusBarTV.setText(text);
+        statusBarBackground.setBackground(getDrawable(drawableId));
+        statusBarBackground.setLayoutParams(
+                new FrameLayout.LayoutParams(
+                        width,
+                        ViewGroup.LayoutParams.MATCH_PARENT));
+    }
+
+    void updateProgressBar() {
+        TriggerSession.SessionState sessionState = TriggerSession
+                .SessionState
+                .values()[prefs.getInt(edu.umich.carlab.Constants.Session_State_Key, 1)];
+
+        Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
+
+        String traceFile = prefs.getString(Load_From_Trace_Key, null);
+
+        if (sessionState == TriggerSession.SessionState.OFF) {
+            setProgressBarDetails(
+                    "Stopped",
+                    R.drawable.background_red,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+        } else if (sessionState == TriggerSession.SessionState.PAUSED) {
+            setProgressBarDetails(
+                    "Paused",
+                    R.drawable.background_yellow,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+        } else if (dumpMode) {
+
+            setProgressBarDetails(
+                    String.format("Dumping data: %d", dumpStatusAmount),
+                    R.drawable.background_green,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+        } else if (traceFile != null) {
+            double parentWidth = statusBarBackgroundWrapper.getMeasuredWidth();
+            setProgressBarDetails(
+                    "Running from a trace file",
+                    R.drawable.background_green,
+                    (int)(parentWidth * replayStatusAmount));
+        } else {
+            setProgressBarDetails(
+                    "Running from live data",
+                    R.drawable.background_green,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+    }
 
     void updateButtons() {
         TriggerSession.SessionState sessionState = TriggerSession
@@ -458,7 +534,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
         } else if (carlabService.isCarLabRunning() && !dumpMode) {
             dumpModeButton.setEnabled(false);
             dumpModeButton.setText("CarLab running");
-        } else if (carlabService.isCarLabRunning() && dumpMode){
+        } else if (carlabService.isCarLabRunning() && dumpMode) {
             dumpModeButton.setEnabled(true);
             dumpModeButton.setText("Stop Data Dump");
         }
@@ -477,7 +553,10 @@ public class ExperimentBaseActivity extends AppCompatActivity
                 runFromTrace.setText("Change Trace File");
             }
         }
+
+        updateProgressBar();
     }
+
     /*************************************************************************/
 
     @Override
