@@ -17,7 +17,7 @@ import java.util.List;
 import static edu.umich.carlab.Constants.*;
 
 public class TraceReplayer implements Runnable {
-    final int INITIAL_WAIT_TIME = 3000;
+    final int INITIAL_WAIT_TIME = 500;
     final String TAG = "TraceReplayer";
 
     final long broadcastEvery = 500L;
