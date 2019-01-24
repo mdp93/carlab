@@ -58,6 +58,8 @@ dependencies {
         transitive = true;
     }
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation 'com.android.support:support-annotations:22.2.0'
 }
 repositories {
     mavenCentral()

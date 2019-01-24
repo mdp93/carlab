@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.CallSuper;
 import android.util.Pair;
 import android.view.View;
 import edu.umich.carlab.CLDataProvider;
@@ -56,6 +57,7 @@ public abstract class App implements IApp {
                 && (dObject.value != null);
     }
 
+    @CallSuper
     @Override
     public void newData(DataMarshal.DataObject dObject) {
         if (!isValidData(dObject)) return;
