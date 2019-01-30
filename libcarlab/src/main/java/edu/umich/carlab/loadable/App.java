@@ -109,6 +109,20 @@ public abstract class App implements IApp {
     public void shutdown() {
     }
 
+    public void outputData(String device, String sensor, Float value) {
+        outputData(device, sensor, new Float[] { value });
+    }
+
+    public void outputData(String device, String sensor, Float[] values) {
+        DataMarshal.DataObject d = new DataMarshal.DataObject();
+        d.time = System.currentTimeMillis();
+        d.device = device;
+        d.sensor = sensor;
+        d.dataType = DataMarshal.MessageType.DATA;
+        d.value = values;
+        cl.newData(d);
+    }
+
     public void outputData(String APP, DataMarshal.DataObject dObject, String sensor, Float value) {
         outputData(APP, dObject, sensor, new Float[]{value});
     }
