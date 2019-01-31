@@ -35,6 +35,8 @@ public class InfoViewFragment extends Fragment {
 
     SharedPreferences prefs;
 
+    TextView appTitle;
+
     private OnFragmentInteractionListener mListener;
 
     public InfoViewFragment() {
@@ -79,6 +81,7 @@ public class InfoViewFragment extends Fragment {
                 false);
 
 
+
         TextView uidText = layout.findViewById(R.id.uid_text);
         String UID = prefs.getString(UID_key, "UNDEFINED");
         uidText.setText("UID: " + UID);
@@ -87,7 +90,10 @@ public class InfoViewFragment extends Fragment {
         String experimentName = prefs.getString(Experiment_Shortname, "Name");
         Integer experimentId = prefs.getInt(Experiment_Id, 0);
         Integer experimentVersion = prefs.getInt(Experiment_Version_Number, 0);
-        experimentNameTV.setText(String.format("(%d) %s v.%d", experimentId, experimentName, experimentVersion));
+        experimentNameTV.setText(String.format("ID %d v.%d", experimentId, experimentVersion));
+
+        appTitle = layout.findViewById(R.id.appTitle);
+        appTitle.setText(experimentName);
 
         return layout;
     }

@@ -24,10 +24,12 @@ public abstract class App implements IApp {
     public List<String> dependencies = new ArrayList<>();
     public String description = "";
     public CLDataProvider cl;
+    public boolean foregroundApp = false;
     protected Context context;
     boolean uploadData = true;
     String URL = Constants.DEFAULT_UPLOAD_URL;
     SharedPreferences prefs;
+
 
     Map<String, Map<String, DataMarshal.DataObject>> latestData = new HashMap<>();
     Map<String, Map<String, Long>> latestDataTime = new HashMap<>();

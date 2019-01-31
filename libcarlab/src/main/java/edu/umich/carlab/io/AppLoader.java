@@ -26,7 +26,6 @@ public class AppLoader {
     private Set<Class<?>> loadedApps = new HashSet<>();
     private Map<String, Middleware> loadedMiddleware = new HashMap<>();
 
-
     private AppLoader() {}
 
     public static AppLoader getInstance() {
@@ -44,7 +43,6 @@ public class AppLoader {
         return this;
     }
 
-
     public AppLoader loadApps(Class<?>[] classes) {
         for (Class<?> cls : classes) {
             if (loadedApps.contains(cls))
@@ -54,24 +52,16 @@ public class AppLoader {
         return this;
     }
 
-
-
     public AppLoader loadMiddlewares(Middleware[] middlewares) {
         for (Middleware middleware : middlewares)
             loadedMiddleware.put(middleware.getName(), middleware);
         return this;
     }
 
-
-
-
     public AppLoader loadMiddleware(Middleware middleware) {
         loadedMiddleware.put(middleware.getName(), middleware);
         return this;
     }
-
-
-
 
     public Map<String, Middleware> getMiddleware() {
         return loadedMiddleware;

@@ -5,11 +5,3 @@
         app:fontProviderQuery="Quicksand"
         app:fontProviderCerts="@array/com_google_android_gms_fonts_certs">
 </font-family>
-
-
-<!--<font-family xmlns:android="http://schemas.android.com/apk/res/android">-->
-    <!--<font-->
-        <!--android:fontStyle="normal"-->
-        <!--android:fontWeight="400"-->
-        <!--android:font="@font/quicksand_font" />-->
-<!--</font-family>-->

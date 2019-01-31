@@ -128,6 +128,9 @@ public class MiddlewareGridFragment extends Fragment {
         List<App> allApps = AppLoader.getInstance().instantiateApps(null, null);
 
         for (App app : allApps) {
+            if (!app.foregroundApp)
+                continue;
+
             AppsAdapter.AppState appState = ACTIVE;
             appModels.add(new AppsAdapter.AppModel(
                     app.getName(),
