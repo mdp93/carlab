@@ -36,7 +36,8 @@ import static edu.umich.carlab.Constants.*;
 public class ExperimentBaseActivity extends AppCompatActivity
         implements InfoViewFragment.OnFragmentInteractionListener,
         MiddlewareGridFragment.OnFragmentInteractionListener,
-        AppViewFragment.OnFragmentInteractionListener {
+        AppViewFragment.OnFragmentInteractionListener,
+        DepMapFragment.OnFragmentInteractionListener {
     Button showMiddleware,
             manualOnOffToggle,
             pauseCarlab,
@@ -62,6 +63,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
     boolean mBound = false;
     InfoViewFragment infoFragment = new InfoViewFragment();
     MiddlewareGridFragment middlewareGridFragment = new MiddlewareGridFragment();
+    DepMapFragment dependencyMapFragment = new DepMapFragment();
 
     /********************** Receivers for CarLab and status changes **********/
     BroadcastReceiver updateReceiver = new BroadcastReceiver() {
@@ -243,6 +245,12 @@ public class ExperimentBaseActivity extends AppCompatActivity
             dialog.show();
         }
     };
+    View.OnClickListener showDependenyMapCallback = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            replaceFragmentWithAnimation(dependencyMapFragment, "DEPMAP");
+        }
+    };
     View.OnClickListener dumpDataCallback = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -417,6 +425,9 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
         runFromTrace = findViewById(R.id.loadFromTrace);
         runFromTrace.setOnClickListener(selectTraceFileCallback);
+
+        showDependenyMap = findViewById(R.id.showDependencyMap);
+        showDependenyMap.setOnClickListener(showDependenyMapCallback);
 
         statusBarTV = findViewById(R.id.status_text);
         statusBarBackground = findViewById(R.id.status_background_color);

@@ -20,6 +20,7 @@ public abstract class App implements IApp {
     final static String TAG = "App base";
     public Activity parentActivity;
     public String name = null;
+    public String middlewareName = null;
     public List<Pair<String, String>> sensors = new ArrayList<>();
     public List<String> dependencies = new ArrayList<>();
     public String description = "";
@@ -89,6 +90,13 @@ public abstract class App implements IApp {
         if (name == null)
             throw new RuntimeException("The app must specify a name.");
         return name;
+    }
+
+
+    public String getMiddlewareName() {
+        if (middlewareName == null)
+            throw new RuntimeException("The app must specify a middleware name");
+        return middlewareName;
     }
 
     @Override
