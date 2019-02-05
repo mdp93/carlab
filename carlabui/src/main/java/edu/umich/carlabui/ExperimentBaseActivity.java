@@ -13,13 +13,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 import edu.umich.carlab.CLService;
 import edu.umich.carlab.ManualTrigger;
 import edu.umich.carlab.TriggerSession;
@@ -55,6 +53,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
     SharedPreferences prefs;
     CLService carlabService;
     FrameLayout mainWrapper;
+    LinearLayout buttonsWrapper;
 
     double replayStatusAmount = 0;
     int dumpStatusAmount = 0;
@@ -400,6 +399,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
     void wireUI() {
         mainWrapper = findViewById(R.id.main_wrapper);
+        buttonsWrapper = findViewById(R.id.cl_buttons_wrapper);
 
         showMiddleware = findViewById(R.id.showMiddleware);
         showMiddleware.setOnClickListener(loadMiddlewareActivity);
@@ -434,7 +434,21 @@ public class ExperimentBaseActivity extends AppCompatActivity
         statusBarBackgroundWrapper = findViewById(R.id.status_background_color_wrapper);
     }
 
-    // https://stackoverflow.com/questions/4932462/animate-the-transition-between-fragments
+    public void addButton(String text, View.OnClickListener callback) {
+        Button button = new Button(this);
+        button.setText(text);
+        button.setOnClickListener(callback);
+//        button.setTextSize(
+//                TypedValue.COMPLEX_UNIT_SP,
+//                getResources().getDimension(R.dimen.controlButtonTextSize));
+        button.setLayoutParams(new LinearLayout.LayoutParams(
+                (int)getResources().getDimension(R.dimen.controlButtonWidth),
+                (int)getResources().getDimension(R.dimen.controlButtonHeight)
+        ));
+        buttonsWrapper.addView(button, 0);
+    }
+
+    // https://stackoverflow.com/questions/4932462/animate-the-transition  -between-fragments
     public void replaceFragmentWithAnimation(Fragment fragment, String tag) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);

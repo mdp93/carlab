@@ -56,7 +56,7 @@ public class CLService extends Service implements CLDataProvider {
     static boolean runningDataCollection = false;
     final String TAG = "CarLab Service";
     final int CL_NOTIFICATION_ID = CARLAB_NOTIFICATION_ID;
-    final long DATA_UPDATE_INTERVAL_IN_MS = 100;
+    final long DATA_UPDATE_INTERVAL_IN_MS = 0; // 100;
     final long UPDATE_NOTIFICATION_INTERVAL = 5000;
     final IBinder mBinder = new LocalBinder();
     public long startTimestamp;
