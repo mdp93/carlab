@@ -512,7 +512,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
         }
     }
 
-    void updateButtons() {
+    public void updateButtons() {
         TriggerSession.SessionState sessionState = TriggerSession
                 .SessionState
                 .values()[prefs.getInt(edu.umich.carlab.Constants.Session_State_Key, 1)];
@@ -575,7 +575,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
             if (traceFile == null) {
                 runFromTrace.setText("Load Trace");
             } else {
-                runFromTrace.setText("Change Trace File");
+                runFromTrace.setText("Loaded Trace");
             }
         }
 
@@ -586,5 +586,6 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
     @Override
     public void onFragmentInteraction(Uri uri) {
+        updateButtons();;
     }
 }

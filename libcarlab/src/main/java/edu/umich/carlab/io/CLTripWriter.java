@@ -53,6 +53,19 @@ public class CLTripWriter {
         }
     }
 
+    public static File GetDumpsDir(Context context) {
+        File tracesDir = context.getExternalFilesDir("dumps");
+        tracesDir.mkdirs();
+        return tracesDir;
+    }
+
+    public static File GetSpecsDir(Context context) {
+        File tracesDir = context.getExternalFilesDir("specs");
+        tracesDir.mkdirs();
+        return tracesDir;
+    }
+
+
     public static File GetTripsDir(Context context) {
         File tracesDir = context.getExternalFilesDir("traces");
         tracesDir.mkdirs();
