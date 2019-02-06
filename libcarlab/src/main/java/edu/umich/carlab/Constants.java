@@ -89,6 +89,9 @@ public class Constants {
     public static final String DUMP_BYTES = "DumpBytes";
 
 
+    public static final String DONE_RUNNING_SPEC_FILE = "DoneRunningSpecFile";
+    public static final String SPEC_RESULT_FILENAME = "SpecResultFilename";
+
     public static final String TASKS_APK_NAME = "tasks.apk";
 
 }

@@ -30,7 +30,8 @@ public class TraceReplayer implements Runnable {
     SharedPreferences prefs;
 
 
-    float startTime = -1, endTime = -1;
+    float specStartTime = -1,
+            specEndTime = -1;
     final int STOP_TIME_PADDING = 1500;
 
     public TraceReplayer (CLService carlabService, String filename, int tripID) {
@@ -42,8 +43,8 @@ public class TraceReplayer implements Runnable {
         prefs = PreferenceManager.getDefaultSharedPreferences(carlabService);
 
 
-        startTime = prefs.getFloat(Load_From_Trace_Duration_Start, -1);
-        endTime = prefs.getFloat(Load_From_Trace_Duration_End, -1);
+        specStartTime = prefs.getFloat(Load_From_Trace_Duration_Start, -1);
+        specEndTime = prefs.getFloat(Load_From_Trace_Duration_End, -1);
     }
 
     @Override
@@ -52,8 +53,7 @@ public class TraceReplayer implements Runnable {
             Thread.sleep(INITIAL_WAIT_TIME);
         } catch (Exception e) {}
 
-        Long startTime = System.currentTimeMillis();
-        Long newStartTime = System.currentTimeMillis();
+        Long startTimeInMillis = System.currentTimeMillis();
         Long dataOffsetTime = traceData.get(0).time;
         Long sleepTime = 0L;
         String uid = prefs.getString(UID_key, null);
@@ -75,13 +75,15 @@ public class TraceReplayer implements Runnable {
             previousDataTime = dataObject.time;
 
 
-            // If we should stop replaying we'll stop here
-            if (endTime != -1 && currTime > startTime + endTime + STOP_TIME_PADDING) {
-                break;
-            }
+//            // If we should stop replaying we'll stop here
+//            if (specEndTime != -1
+//                    && currTime > startTimeInMillis + specEndTime * 1000 + STOP_TIME_PADDING) {
+//                Log.e(TAG, "Stopping trace replaying. Spec end time reached.");
+//                break;
+//            }
 
             dataObject.time -= dataOffsetTime;
-            dataObject.time += newStartTime;
+            dataObject.time += startTimeInMillis;
             dataObject.tripid = tripID;
             dataObject.uid = uid;
             carlabService.newData(dataObject);
