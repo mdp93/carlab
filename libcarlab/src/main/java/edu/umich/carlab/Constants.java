@@ -45,6 +45,9 @@ public class Constants {
     public static final String Session_State_Key = "session state key";
     public static final String Dump_Data_Mode_Key = "dump data mode activated";
     public static final String Load_From_Trace_Key = "load from this trace file";
+    public static final String Load_From_Trace_Duration_Start = "load from this trace file starting from";
+    public static final String Load_From_Trace_Duration_End = "load from this trace file ending at";
+    public static final String Load_Attack_From_Specs_Key = "load attack from specs key";
     public static final int wakeupCheckPeriod = 30*1000; //10*1000;
     public static final int sleepCheckPeriod = 5*1000; //5*1000;
 

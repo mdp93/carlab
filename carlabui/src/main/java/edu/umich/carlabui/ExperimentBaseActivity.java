@@ -13,7 +13,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -442,8 +441,8 @@ public class ExperimentBaseActivity extends AppCompatActivity
 //                TypedValue.COMPLEX_UNIT_SP,
 //                getResources().getDimension(R.dimen.controlButtonTextSize));
         button.setLayoutParams(new LinearLayout.LayoutParams(
-                (int)getResources().getDimension(R.dimen.controlButtonWidth),
-                (int)getResources().getDimension(R.dimen.controlButtonHeight)
+                (int) getResources().getDimension(R.dimen.controlButtonWidth),
+                (int) getResources().getDimension(R.dimen.controlButtonHeight)
         ));
         buttonsWrapper.addView(button, 0);
     }
@@ -503,7 +502,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
             setProgressBarDetails(
                     "Running from a trace file",
                     R.drawable.background_green,
-                    (int)(parentWidth * replayStatusAmount));
+                    (int) (parentWidth * replayStatusAmount));
         } else {
             setProgressBarDetails(
                     "Running from live data",
@@ -586,6 +585,7 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-        updateButtons();;
+        updateButtons();
+        ;
     }
 }

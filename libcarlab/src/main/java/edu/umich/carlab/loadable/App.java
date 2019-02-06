@@ -29,7 +29,7 @@ public abstract class App implements IApp {
     protected Context context;
     boolean uploadData = true;
     String URL = Constants.DEFAULT_UPLOAD_URL;
-    SharedPreferences prefs;
+    public SharedPreferences prefs;
 
 
     Map<String, Map<String, DataMarshal.DataObject>> latestData = new HashMap<>();

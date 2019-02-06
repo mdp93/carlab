@@ -29,6 +29,10 @@ public class TraceReplayer implements Runnable {
     List<DataMarshal.DataObject> traceData;
     SharedPreferences prefs;
 
+
+    float startTime = -1, endTime = -1;
+    final int STOP_TIME_PADDING = 1500;
+
     public TraceReplayer (CLService carlabService, String filename, int tripID) {
         this.carlabService = carlabService;
         ifile = new File(filename);
@@ -36,6 +40,10 @@ public class TraceReplayer implements Runnable {
         DataDumpWriter dataDumpWriter = new DataDumpWriter(carlabService);
         traceData = dataDumpWriter.readData(ifile);
         prefs = PreferenceManager.getDefaultSharedPreferences(carlabService);
+
+
+        startTime = prefs.getFloat(Load_From_Trace_Duration_Start, -1);
+        endTime = prefs.getFloat(Load_From_Trace_Duration_End, -1);
     }
 
     @Override
@@ -62,8 +70,16 @@ public class TraceReplayer implements Runnable {
         long currTime = 0;
 
         for (int i = 0; i < traceData.size(); i++) {
+            currTime = System.currentTimeMillis();
             dataObject = traceData.get(i);
             previousDataTime = dataObject.time;
+
+
+            // If we should stop replaying we'll stop here
+            if (endTime != -1 && currTime > startTime + endTime + STOP_TIME_PADDING) {
+                break;
+            }
+
             dataObject.time -= dataOffsetTime;
             dataObject.time += newStartTime;
             dataObject.tripid = tripID;
@@ -73,13 +89,11 @@ public class TraceReplayer implements Runnable {
             if (i < traceData.size() - 1) {
                 try {
                     sleepTime = traceData.get(i+1).time - previousDataTime;
-//                    sleepTime = 1L;
                     if (sleepTime > 0)
                         Thread.sleep(sleepTime);
                 } catch (Exception e) {}
             }
 
-            currTime = System.currentTimeMillis();
             if (currTime > lastBroadcast + broadcastEvery) {
                 Intent intent = new Intent(REPLAY_STATUS);
                 intent.putExtra(REPLAY_PERCENTAGE, (double)i / traceData.size());
@@ -91,6 +105,8 @@ public class TraceReplayer implements Runnable {
         prefs
                 .edit()
                 .putString(Load_From_Trace_Key, null)
+                .putFloat(Load_From_Trace_Duration_Start, -1)
+                .putFloat(Load_From_Trace_Duration_End, -1)
                 .putBoolean(ManualChoiceKey, false).commit();
 
         carlabService.sendBroadcast(new Intent(
