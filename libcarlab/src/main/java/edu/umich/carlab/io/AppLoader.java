@@ -76,7 +76,7 @@ public class AppLoader {
                 App appInstance = (App) constructor.newInstance(clDataProvider, context);
                 instantiatedApps.add(appInstance);
             } catch (Exception e) {
-                Log.e(TAG, "Error creating alive app: " + e);
+                Log.e(TAG, "Error creating alive app: " + e + app.getCanonicalName());
             }
         }
 
