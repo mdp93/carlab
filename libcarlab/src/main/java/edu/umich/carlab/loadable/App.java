@@ -47,6 +47,13 @@ public abstract class App implements IApp {
     }
 
 
+    /**
+     * Load this value from the shared prefs. This is useful to keep track of values that must persist across
+     * invocations of CarLab. For example, the previously saved fuel level.
+     * @param variableName
+     * @param defaultValue
+     * @return
+     */
     protected double loadValue(String variableName, Double defaultValue) {
         return prefs.getFloat(variableName, defaultValue.floatValue());
     }
@@ -74,6 +81,12 @@ public abstract class App implements IApp {
         latestDataTime.get(dObject.device).put(dObject.sensor, System.currentTimeMillis());
     }
 
+    /**
+     * Gets the latest data for this sensor. There is no guarantee when this data was received or saved.
+     * @param device
+     * @param sensor
+     * @return
+     */
     public DataMarshal.DataObject getLatestData(String device, String sensor) {
         if (!latestData.containsKey(device)) return null;
         if (!latestData.get(device).containsKey(sensor)) return null;
