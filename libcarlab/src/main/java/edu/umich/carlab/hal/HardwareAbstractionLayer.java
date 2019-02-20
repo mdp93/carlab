@@ -185,33 +185,44 @@ public class HardwareAbstractionLayer {
 
     /**
      * Splits data objects for writing to a file.
+     *
      * @param dataObject
-     * @return
+     * @return List of split data objects
      */
-    public static List<DataMarshal.DataObject> splitValues(DataMarshal.DataObject dataObject) {
+    public static List<DataMarshal.DataObject> splitDataObjects(DataMarshal.DataObject dataObject) {
         List<DataMarshal.DataObject> splitObjects = new ArrayList<>();
-        if (dataObject.device.equals(PhoneSensors.DEVICE)){
-            Map<String, Float> splitValues = PhoneSensors.splitValues(dataObject);
-            for (Map.Entry<String, Float> sensorValue : splitValues.entrySet()) {
-                DataMarshal.DataObject dObjectClone = dataObject.clone();
-                dObjectClone.sensor = sensorValue.getKey();
-                dObjectClone.value = new Float [] { sensorValue.getValue() };
-                splitObjects.add(dObjectClone);
-            }
-        } else if (AppLoader.getInstance().getMiddleware().containsKey(dataObject.device)) {
-            Middleware middleware = AppLoader.getInstance().getMiddleware().get(dataObject.device);
-            Map<String, Float> splitValues = middleware.splitValues(dataObject);
-            for (Map.Entry<String, Float> sensorValue : splitValues.entrySet()) {
-                DataMarshal.DataObject dObjectClone = dataObject.clone();
-                dObjectClone.sensor = sensorValue.getKey();
-                dObjectClone.value = new Float [] { sensorValue.getValue() };
-                splitObjects.add(dObjectClone);
-            }
-        } else {
+
+        Map<String, Float> splitValues = splitValues(dataObject);
+        if (splitValues == null)  // This means there was nothing to split
             splitObjects.add(dataObject);
-        }
+        else
+            for (Map.Entry<String, Float> sensorValue : splitValues.entrySet()) {
+                DataMarshal.DataObject dObjectClone = dataObject.clone();
+                dObjectClone.sensor = sensorValue.getKey();
+                dObjectClone.value = new Float [] { sensorValue.getValue() };
+                splitObjects.add(dObjectClone);
+            }
 
         return splitObjects;
+    }
+
+    /**
+     * Split data objects based on their device data source.
+     * This only returns values. It loses the rest of the meta data stored in data object.
+     *
+     * @return A map of the split values.
+     */
+    public static Map<String, Float> splitValues(DataMarshal.DataObject dataObject) {
+        String dev = dataObject.device;
+        if (dev.equals(PhoneSensors.DEVICE))
+            return PhoneSensors.splitValues(dataObject);
+        else if (AppLoader.getInstance().getMiddleware().containsKey(dev)) {
+            Middleware middleware = AppLoader.getInstance().getMiddleware().get(dataObject.device);
+            return middleware.splitValues(dataObject);
+        }
+
+        // Else nothing to split.
+        return null;
     }
 
 

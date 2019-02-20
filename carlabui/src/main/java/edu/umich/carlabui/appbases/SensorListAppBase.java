@@ -79,9 +79,8 @@ public class SensorListAppBase extends App {
         if (dataObject.dataType != DataMarshal.MessageType.DATA)
             return;
 
-        List<DataMarshal.DataObject> objects = HardwareAbstractionLayer.splitValues(dataObject);
+        List<DataMarshal.DataObject> objects = HardwareAbstractionLayer.splitDataObjects(dataObject);
         for (final DataMarshal.DataObject dObject : objects) {
-
             parentActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

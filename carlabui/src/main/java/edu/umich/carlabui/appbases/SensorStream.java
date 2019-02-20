@@ -64,7 +64,7 @@ public class SensorStream {
                 || (parentActivity == null))
             return;
 
-        List<DataMarshal.DataObject> splitObjects = HardwareAbstractionLayer.splitValues(fullDataObject);
+        List<DataMarshal.DataObject> splitObjects = HardwareAbstractionLayer.splitDataObjects(fullDataObject);
         for (final DataMarshal.DataObject dObject : splitObjects) {
             final String device = dObject.device;
             final String sensor = dObject.sensor;

@@ -120,7 +120,7 @@ public class CLTripWriter {
 
         // If data object has more than 1 sensor, we have to split it up
         if (dataObject.value.length > 1) {
-            List<DataMarshal.DataObject> splitObjects = HardwareAbstractionLayer.splitValues(dataObject);
+            List<DataMarshal.DataObject> splitObjects = HardwareAbstractionLayer.splitDataObjects(dataObject);
             for (DataMarshal.DataObject dObject : splitObjects) {
                 String line = dObject.toJson();
 
