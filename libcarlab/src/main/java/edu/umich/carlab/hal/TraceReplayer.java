@@ -20,8 +20,8 @@ public class TraceReplayer implements Runnable {
     final int INITIAL_WAIT_TIME = 500;
     final String TAG = "TraceReplayer";
 
-    final long broadcastEvery = 500L;
-    long lastBroadcast = 0L;
+    final long broadcastUiUpdateEvery = 500L;
+    long lastUiBroadcast = 0L;
 
     CLService carlabService;
     File ifile;
@@ -84,6 +84,10 @@ public class TraceReplayer implements Runnable {
 
             dataObject.time -= dataOffsetTime;
             dataObject.time += startTimeInMillis;
+
+            // Uncomment below if the trace replaying lags too much
+//             dataObject.time = System.currentTimeMillis();
+
             dataObject.tripid = tripID;
             dataObject.uid = uid;
             carlabService.newData(dataObject);
@@ -96,11 +100,11 @@ public class TraceReplayer implements Runnable {
                 } catch (Exception e) {}
             }
 
-            if (currTime > lastBroadcast + broadcastEvery) {
+            if (currTime > lastUiBroadcast + broadcastUiUpdateEvery) {
                 Intent intent = new Intent(REPLAY_STATUS);
                 intent.putExtra(REPLAY_PERCENTAGE, (double)i / traceData.size());
                 carlabService.sendBroadcast(intent);
-                lastBroadcast = currTime;
+                lastUiBroadcast  = currTime;
             }
         }
 

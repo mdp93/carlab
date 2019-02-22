@@ -283,6 +283,7 @@ return currentlyStarting;
             @Override
             public void run() {
                 Log.e(TAG, "Starting CL! Thread ID: " + Thread.currentThread().getId());
+                boolean loadingFromTraceFile = prefs.getString(Load_From_Trace_Key, null) != null;
                 hal = new HardwareAbstractionLayer(CLService.this);
 
                 if (dumpMode) {
@@ -297,9 +298,12 @@ return currentlyStarting;
                     clTripWriter.startNewTrip();
 
                     bringAppsToLife();
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
+
+                    if (!loadingFromTraceFile) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (Exception e) {
+                        }
                     }
                     Log.v(TAG, "Just returned from bringing apps to life");
 
@@ -336,14 +340,6 @@ return currentlyStarting;
         final String replayTraceFile = prefs.getString(Load_From_Trace_Key, null);
 
 
-        if (replayTraceFile != null) {
-            // This means we will read from the trace file instead
-            replayer = new TraceReplayer(this, replayTraceFile, clTripWriter.getCurrentTripRecord().getID());
-            Thread replayerThread = new Thread(replayer);
-            replayerThread.setName("Replayer Thread");
-            replayerThread.start();
-        }
-
         for (Map.Entry<String, App> appEntry : runningApps.entrySet()) {
             List<Pair<String, String>> sensors = appEntry.getValue().getSensors();
             for (Pair<String, String> devSensor : sensors) {
@@ -355,16 +351,29 @@ return currentlyStarting;
                     dataMultiplexing.put(multiplexKey, new HashSet<String>());
                 dataMultiplexing.get(multiplexKey).add(appEntry.getKey());
                 lastDataUpdate.get(appEntry.getKey()).put(multiplexKey, 0L);
-                // Then turn it on a little while later
-                try {
-                    Thread.sleep(250);
-                } catch (Exception e) {
-                }
 
+                // Then turn it on a little while later
                 if (replayTraceFile == null) {
+                    try {
+
+                        Thread.sleep(250);
+                    } catch (Exception e) {
+                    }
                     hal.turnOnSensor(device, sensor);
                 }
             }
+        }
+
+
+
+        // Turn on trace replayer only after all apps are registered and wired
+        // If we turn it on before, we lose some data and the historical data timestamps get mixed up
+        if (replayTraceFile != null) {
+            // This means we will read from the trace file instead
+            replayer = new TraceReplayer(this, replayTraceFile, clTripWriter.getCurrentTripRecord().getID());
+            Thread replayerThread = new Thread(replayer);
+            replayerThread.setName("Replayer Thread");
+            replayerThread.start();
         }
     }
 

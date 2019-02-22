@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import edu.umich.carlab.CLDataProvider;
@@ -12,13 +13,10 @@ import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.hal.HardwareAbstractionLayer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class App implements IApp {
-    final static String TAG = "App base";
+    final static String TAG = "appbase";
     final Integer SECONDS_PER_BUCKET = 5;
     public Activity parentActivity;
     public String name = null;
@@ -32,11 +30,14 @@ public abstract class App implements IApp {
     protected Context context;
     boolean uploadData = true;
     String URL = Constants.DEFAULT_UPLOAD_URL;
+
     // Latest DataObject storage
     Map<String, Map<String, DataMarshal.DataObject>> latestData = new HashMap<>();
     Map<String, Map<String, Long>> latestDataTime = new HashMap<>();
+
     // Historical bucketed data storage
     // Indexed by [device][sensor][N second bucket]
+    protected boolean enableHistoricalLogging = false;
     Map<String, // Device
             Map<String, // Sensor
                     Map<Long, // Seconds bucket
@@ -91,36 +92,43 @@ public abstract class App implements IApp {
         latestData.get(dev).put(sen, dObject);
         latestDataTime.get(dev).put(sen, System.currentTimeMillis());
 
-        // Historical data saving
-        historicalData.putIfAbsent(dev, new HashMap<String, Map<Long, List<DataSample>>>());
+        if (enableHistoricalLogging) {
+            // Historical data saving
+            historicalData.putIfAbsent(dev, new HashMap<String, Map<Long, List<DataSample>>>());
 
-        Long bucket = bucketTime(timestamp);
-        Map<String, Float> splitValues = HardwareAbstractionLayer.splitValues(dObject);
+            Long bucket = bucketTime(timestamp);
+            Map<String, Float> splitValues = HardwareAbstractionLayer.splitValues(dObject);
 
-        Float val;
-        if (splitValues == null) { // This means there was nothing to split
-            historicalData.get(dev).putIfAbsent(sen, new HashMap<Long, List<DataSample>>());
-            historicalData.get(dev).get(sen).putIfAbsent(bucket, new ArrayList<DataSample>());
-            historicalData.get(dev)
-                    .get(sen)
-                    .get(bucket)
-                    .add(new DataSample(
-                            timestamp,
-                            dObject.value[0]));
-        } else {
-            for (Map.Entry<String, Float> sensorValue : splitValues.entrySet()) {
-                sen = sensorValue.getKey();
-                val = sensorValue.getValue();
+            Float val;
+            if (splitValues == null) { // This means there was nothing to split
                 historicalData.get(dev).putIfAbsent(sen, new HashMap<Long, List<DataSample>>());
                 historicalData.get(dev).get(sen).putIfAbsent(bucket, new ArrayList<DataSample>());
-
                 historicalData.get(dev)
                         .get(sen)
                         .get(bucket)
                         .add(new DataSample(
                                 timestamp,
-                                val
-                        ));
+                                dObject.value[0]));
+
+//                Log.v(TAG, String.format("Adding to historical data buckets [%s][%s][%d]", dev, sen, bucket));
+
+            } else {
+                for (Map.Entry<String, Float> sensorValue : splitValues.entrySet()) {
+                    sen = sensorValue.getKey();
+                    val = sensorValue.getValue();
+                    historicalData.get(dev).putIfAbsent(sen, new HashMap<Long, List<DataSample>>());
+                    historicalData.get(dev).get(sen).putIfAbsent(bucket, new ArrayList<DataSample>());
+
+//                    Log.v(TAG, String.format("Adding to historical data buckets [%s][%s][%d]", dev, sen, bucket));
+
+                    historicalData.get(dev)
+                            .get(sen)
+                            .get(bucket)
+                            .add(new DataSample(
+                                    timestamp,
+                                    val
+                            ));
+                }
             }
         }
     }
@@ -171,7 +179,7 @@ public abstract class App implements IApp {
      * @return
      */
     public DataSample getDataAt(String dev, String sen, Long millisecondsOffset) {
-
+        if (!enableHistoricalLogging) return null;
         /*
             Take current time
             Take seconds offset from current time
@@ -183,32 +191,49 @@ public abstract class App implements IApp {
         Long currTime = System.currentTimeMillis();
         Long searchTime = currTime - millisecondsOffset;
         Long bucket = bucketTime(searchTime);
-        if (historicalData.containsKey(dev)
-                && historicalData.get(dev).containsKey(sen)
-                && historicalData.get(dev).get(sen).containsKey(bucket)) {
-            List<DataSample> bucketSamples = historicalData.get(dev)
-                    .get(sen)
-                    .get(bucket);
-            // Find the nearest datapoint
-            // We can easily improve this by using a sorted list or binary searching
-            Long nearestDiff = SECONDS_PER_BUCKET * 1000L; // At max this is the difference
-            DataSample nearestSample = null;
-            for (DataSample sample : bucketSamples) {
-                Long diff = Math.abs(sample.time - searchTime);
-                if (diff < nearestDiff) {
-                    nearestDiff = diff;
-                    nearestSample = sample;
-                }
-            }
 
-            return nearestSample;
+        if (!historicalData.containsKey(dev)) {
+            Log.e(TAG, String.format("Device not found in historical data[%s] ", dev));
+            return null;
+        }
+
+        if (!historicalData.get(dev).containsKey(sen)) {
+            Log.e(TAG, String.format("Sensor not found in historical data[%s][%s]", dev, sen));
+            return null;
+        }
+
+        if (!historicalData.get(dev).get(sen).containsKey(bucket)) {
+            Log.e(TAG, String.format("Bucket not found in historical data[%s][%s][%d]", dev, sen, bucket));
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<Long, List<DataSample>> keyValue : historicalData.get(dev).get(sen).entrySet()) {
+                sb.append(String.format("%d [%d], ", keyValue.getKey(), keyValue.getValue().size()));
+            }
+            Log.v(TAG, String.format("Historical data only has: " + sb.toString()));
+            return null;
         }
 
 
-        return null;
+        List<DataSample> bucketSamples = historicalData.get(dev)
+                .get(sen)
+                .get(bucket);
+        // Find the nearest datapoint
+        // We can easily improve this by using a sorted list or binary searching
+        Long nearestDiff = SECONDS_PER_BUCKET * 1000L; // At max this is the difference
+        DataSample nearestSample = null;
+        for (DataSample sample : bucketSamples) {
+            Long diff = Math.abs(sample.time - searchTime);
+            if (diff < nearestDiff) {
+                nearestDiff = diff;
+                nearestSample = sample;
+            }
+        }
+
+        return nearestSample;
     }
 
     public Map<String, DataSample> getDataAt(String device, String[] sensors, Long millisecondsOffset) {
+        if (!enableHistoricalLogging) return null;
+
         Map<String, DataSample> dataMap = new HashMap<>();
         for (String sensor : sensors)
             dataMap.put(
