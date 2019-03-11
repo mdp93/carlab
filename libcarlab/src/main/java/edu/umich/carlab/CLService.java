@@ -73,6 +73,7 @@ public class CLService extends Service implements CLDataProvider {
     Map<String, App> runningApps;
     Map<String, Set<String>> dataMultiplexing;
 
+    Boolean liveMode;
     String uid, tripid;
 
 
@@ -111,14 +112,16 @@ public class CLService extends Service implements CLDataProvider {
     public void onCreate() {
         startTimestamp = System.currentTimeMillis();
         prefs = getDefaultSharedPreferences(this);
-        tripLog = TripLog.getInstance(this);
+        liveMode = prefs.getBoolean(LIVE_MODE, false);
+        if (!liveMode)
+            tripLog = TripLog.getInstance(this);
         Log.e(TAG, "Service On create: " + startTimestamp);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         final Boolean dumpMode = prefs.getBoolean(Dump_Data_Mode_Key, false);
-
+        liveMode = prefs.getBoolean(LIVE_MODE, false);
         if (intent.getAction().equals(Constants.MASTER_SWITCH_ON)) {
             // Check if we're already running. If we are, then unload the running app and then start this
             if (isCarLabRunning()) {
@@ -126,24 +129,27 @@ public class CLService extends Service implements CLDataProvider {
             }
 
             int tripOffset = prefs.getInt(Trip_Id_Offset, -1);
-            if (tripOffset == -1) {
-                Toast.makeText(
-                        this,
-                        "Couldn't start CarLab. Unable to get existing trip ID.",
-                        Toast.LENGTH_SHORT)
-                     .show();
-                return Service.START_NOT_STICKY;
+
+            if (!liveMode) {
+                if (tripOffset == -1) {
+                    Toast.makeText(
+                            this,
+                            "Couldn't start CarLab. Unable to get existing trip ID.",
+                            Toast.LENGTH_SHORT)
+                            .show();
+                    return Service.START_NOT_STICKY;
+                }
             }
 
             Log.e(TAG, "Service on start cmd: " + startTimestamp);
             NotificationsHelper.setNotificationForeground(this, NotificationsHelper.Notifications.COLLECTING_DATA);
 
-            if (!dumpMode) {
+            if (!dumpMode && !liveMode) {
                 currentTrip = tripLog.startTrip(tripOffset);
                 clTripWriter = new CLTripWriter(this, currentTrip);
                 tripid = currentTrip.getID().toString();
             } else {
-                tripid = "DUMP MODE";
+                tripid = "DUMP MODE OR LIVE MODE";
             }
             startupSequence();
             Toast.makeText(this, "CarLab starting data collection. T=" + tripid, Toast.LENGTH_SHORT).show();
@@ -245,7 +251,8 @@ return currentlyStarting;
         dataMultiplexing = null;
         runningApps = null;
 
-        if (clTripWriter != null && !dumpMode) {
+
+        if (clTripWriter != null && !dumpMode && !liveMode) {
             clTripWriter.stopTrip();
         }
 
@@ -272,7 +279,7 @@ return currentlyStarting;
         runningDataCollection = true;
         currentlyStarting = true;
         uid = prefs.getString(UID_key, null);
-        if (uid == null) {
+        if (uid == null && !liveMode) {
             Log.e(TAG, "Problem setting the UID in carlab start");
         }
 
@@ -295,7 +302,10 @@ return currentlyStarting;
                 } else {
                     runningApps = new HashMap<>();
                     dataMultiplexing = new HashMap<>();
-                    clTripWriter.startNewTrip();
+
+                    if (!liveMode) {
+                        clTripWriter.startNewTrip();
+                    }
 
                     bringAppsToLife();
 
@@ -463,7 +473,9 @@ return currentlyStarting;
                     // The app gets new data
                     dataObject.appClassName = appClassName;
                     app.newData(dataObject);
-                    clTripWriter.addNewData(appClassName, dataObject);
+
+                    if (!liveMode)
+                        clTripWriter.addNewData(appClassName, dataObject);
                     lastDataUpdate.get(appClassName).put(multiplexKey, currTime);
                 }
 

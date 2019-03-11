@@ -345,8 +345,9 @@ public class ExperimentBaseActivity extends AppCompatActivity
 
         setContentView(R.layout.experiment_container);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean liveMode = prefs.getBoolean(LIVE_MODE, false);
 
-        if (prefs.getInt(Trip_Id_Offset, -1) == -1) {
+        if (!liveMode && prefs.getInt(Trip_Id_Offset, -1) == -1) {
             Utilities.keepTryingInit(this);
         }
 

@@ -82,11 +82,11 @@ public class TraceReplayer implements Runnable {
 //                break;
 //            }
 
-            dataObject.time -= dataOffsetTime;
-            dataObject.time += startTimeInMillis;
+//            dataObject.time -= dataOffsetTime;
+//            dataObject.time += startTimeInMillis;
 
             // Uncomment below if the trace replaying lags too much
-//             dataObject.time = System.currentTimeMillis();
+             dataObject.time = System.currentTimeMillis();
 
             dataObject.tripid = tripID;
             dataObject.uid = uid;

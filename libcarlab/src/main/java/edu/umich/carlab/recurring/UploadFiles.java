@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
+import static edu.umich.carlab.Constants.LIVE_MODE;
 
 /**
  * Created by arunganesan on 3/20/18.
@@ -45,10 +46,16 @@ public class UploadFiles extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         this.context = context;
 
+
+        SharedPreferences sharedPrefs = getDefaultSharedPreferences(context);
+        if (sharedPrefs.getBoolean(LIVE_MODE, false)) {
+            // No need to upload if we are in live mode
+            return;
+        }
+
         // Only upload if we are on WiFi
         if (!Utilities.isConnectedAndWifi(context)) return;
 
-        SharedPreferences sharedPrefs = getDefaultSharedPreferences(context);
         String UID = sharedPrefs.getString(Constants.UID_key, null);
 
         if (UID == null) {

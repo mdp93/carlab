@@ -41,6 +41,8 @@ public class Constants {
     public static String UID_key = "uid";
     public static final String Main_Activity = "this main activity";
 
+    public static final String LIVE_MODE = "live mode - no saving";
+
 
     public static final String Session_State_Key = "session state key";
     public static final String Dump_Data_Mode_Key = "dump data mode activated";
