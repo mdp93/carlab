@@ -380,7 +380,8 @@ return currentlyStarting;
         // If we turn it on before, we lose some data and the historical data timestamps get mixed up
         if (replayTraceFile != null) {
             // This means we will read from the trace file instead
-            replayer = new TraceReplayer(this, replayTraceFile, clTripWriter.getCurrentTripRecord().getID());
+            int tripId = (liveMode) ? 42 : clTripWriter.getCurrentTripRecord().getID();
+            replayer = new TraceReplayer(this, replayTraceFile, tripId);
             Thread replayerThread = new Thread(replayer);
             replayerThread.setName("Replayer Thread");
             replayerThread.start();

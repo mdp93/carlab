@@ -19,6 +19,7 @@ import static edu.umich.carlab.Constants.*;
 public class TraceReplayer implements Runnable {
     final int INITIAL_WAIT_TIME = 500;
     final String TAG = "TraceReplayer";
+    boolean liveMode = false;
 
     final long broadcastUiUpdateEvery = 500L;
     long lastUiBroadcast = 0L;
@@ -41,7 +42,7 @@ public class TraceReplayer implements Runnable {
         DataDumpWriter dataDumpWriter = new DataDumpWriter(carlabService);
         traceData = dataDumpWriter.readData(ifile);
         prefs = PreferenceManager.getDefaultSharedPreferences(carlabService);
-
+        liveMode = prefs.getBoolean(LIVE_MODE, false);
 
         specStartTime = prefs.getFloat(Load_From_Trace_Duration_Start, -1);
         specEndTime = prefs.getFloat(Load_From_Trace_Duration_End, -1);
@@ -56,9 +57,11 @@ public class TraceReplayer implements Runnable {
         Long startTimeInMillis = System.currentTimeMillis();
         Long dataOffsetTime = traceData.get(0).time;
         Long sleepTime = 0L;
+
         String uid = prefs.getString(UID_key, null);
-        if (uid == null) {
+        if (uid == null && !liveMode) {
             String errorMessage = "UID is null. Something went wrong with replay";
+            // TODO This will crash since this thread didn't call Looper.prepare()
             Toast.makeText(carlabService, errorMessage, Toast.LENGTH_SHORT).show();
             Log.e(TAG, errorMessage);
             return;
