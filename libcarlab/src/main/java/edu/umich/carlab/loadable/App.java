@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.CallSuper;
 import android.util.Log;
 import android.util.Pair;
@@ -13,11 +14,15 @@ import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.hal.HardwareAbstractionLayer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class App implements IApp {
-    final static String TAG = "appbase";
+    final String TAG = "appbase";
     final Integer SECONDS_PER_BUCKET = 5;
+    final int PRINT_AVERAGE_EVERY = 100;
     public Activity parentActivity;
     public String name = null;
     public String middlewareName = null;
@@ -28,16 +33,16 @@ public abstract class App implements IApp {
     public boolean foregroundApp = false;
     public SharedPreferences prefs;
     protected Context context;
-    boolean uploadData = true;
-    String URL = Constants.DEFAULT_UPLOAD_URL;
-
-    // Latest DataObject storage
-    Map<String, Map<String, DataMarshal.DataObject>> latestData = new HashMap<>();
-    Map<String, Map<String, Long>> latestDataTime = new HashMap<>();
-
     // Historical bucketed data storage
     // Indexed by [device][sensor][N second bucket]
     protected boolean enableHistoricalLogging = false;
+    boolean uploadData = true;
+    String URL = Constants.DEFAULT_UPLOAD_URL;
+
+    Long startTime;
+    // Latest DataObject storage
+    Map<String, Map<String, DataMarshal.DataObject>> latestData = new HashMap<>();
+    Map<String, Map<String, Long>> latestDataTime = new HashMap<>();
     Map<String, // Device
             Map<String, // Sensor
                     Map<Long, // Seconds bucket
@@ -73,6 +78,15 @@ public abstract class App implements IApp {
     public boolean isValidData(DataMarshal.DataObject dObject) {
         return (dObject.dataType == DataMarshal.MessageType.DATA)
                 && (dObject.value != null);
+    }
+
+    protected void startClock() {
+        startTime = SystemClock.uptimeMillis();
+    }
+
+    protected void endClock() {
+        long endTime = SystemClock.uptimeMillis();
+        Log.v(name, String.format("Ran in ms: %d", (endTime - startTime)));
     }
 
     @CallSuper

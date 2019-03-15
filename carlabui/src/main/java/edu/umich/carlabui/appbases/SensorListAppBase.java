@@ -24,7 +24,7 @@ import java.util.Map;
  */
 
 public class SensorListAppBase extends App {
-    public final static String TAG = "SensorListTableView";
+    public final String TAG = "SensorListTableView";
     boolean initialized = false;
     protected CLDataProvider cl;
     TableLayout dataTable;
